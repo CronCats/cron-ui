@@ -1,7 +1,4 @@
 <template>
-  <!-- <div @click="this.$near.loginAccount()" class="p-8">
-    Login
-  </div> -->
   <div>
     <Header />
 
