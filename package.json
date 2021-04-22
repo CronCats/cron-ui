@@ -41,6 +41,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "cron-parser": "^3.4.0",
     "near-api-js": "^0.38.0",
     "vue": "^3.0.7"
   }

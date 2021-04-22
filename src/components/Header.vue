@@ -3,9 +3,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="flex justify-between items-center py-6 md:justify-start md:space-x-10">
         <div class="flex justify-start lg:w-0 lg:flex-1">
-          <div class="nes-badge">
+          <img class="h-full w-48 object-contain" src="../assets/cron_logo_light.png" alt="">
+          <!-- <div class="nes-badge">
             <span class="is-error">CRONCAT</span>
-          </div>
+          </div> -->
         </div>
         <div class="md:flex items-center justify-end md:flex-1 lg:w-0 flex">
           <a href="https://github.com/Cron-Near/Cron-Spec" target="_blank" class="flex mr-10 whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-100">

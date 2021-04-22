@@ -4,23 +4,7 @@
 
     <div class="flex items-center justify-center pt-24 pb-32 px-4 sm:px-6 lg:px-8">
       <div class="max-w-4xl mx-auto space-y-8">
-        <div>
-          <!-- <img src="https://i.pinimg.com/originals/d2/b6/88/d2b688357b0c20cebde3745a3043108d.gif" alt=""> -->
-          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-100">
-            "At minute 23 past every 2nd hour from 0 through 20."
-          </h2>
-          <p class="max-w-2xl mx-auto mt-6 text-center text-sm text-gray-600">
-            next at 2021-04-11 16:23:00
-          </p>
-        </div>
-        <form class="mt-8 space-y-6" action="#" method="POST">
-
-          <div class="nes-field">
-            <input type="text" id="name_field" class="nes-input is-dark p-6" placeholder="* * * * *" value="23 0-20/2 * * *">
-          </div>
-
-          <!-- <button type="button" class="nes-btn is-primary bg-pine-400">Create Task</button> -->
-        </form>
+        <Cadence />
       </div>
     </div>
 
@@ -106,6 +90,12 @@
     </div>
 
     <div class="relative bg-teal-700 overflow-hidden">
+      <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+        <img class="absolute h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" :class="{hidden: !catBool}" src="../assets/cat_stand.gif" alt="">
+        <img class="absolute h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" :class="{hidden: catBool}" src="../assets/cat_walk.gif" alt="">
+      </div>
+      <!-- <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+      </div> -->
       <div class="max-w-7xl mx-auto">
         <div class="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
 
@@ -144,9 +134,6 @@
           </main>
         </div>
       </div>
-      <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-        <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="../assets/cat_walk.gif" alt="">
-      </div>
     </div>
 
 
@@ -155,10 +142,11 @@
         <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
           <span class="block">What's running on croncat?</span>
         </h2>
-        <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-          <div class="inline-flex rounded-md shadow">
+        <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0 relative">
+          <div class="inline-flex rounded-md shadow z-1">
             <a class="nes-btn p-4" href="#">See All Tasks</a>
           </div>
+          <img class="h-32 w-full max-w-max absolute z-5 -top-32 r-0" src="../assets/cat_sit.gif" alt="">
         </div>
       </div>
     </div>
@@ -296,10 +284,18 @@
 </template>
 
 <script>
+import Cadence from '../components/Cadence.vue'
 import Header from '../components/Header.vue'
 export default {
 
+  data() {
+    return {
+      catBool: true,
+    }
+  },
+
   components: {
+    Cadence,
     Header,
   },
 
@@ -311,6 +307,10 @@ export default {
 
   mounted () {
     console.log(this.$near)
+
+    setInterval(() => {
+      this.catBool = !this.catBool
+    }, 5000)
   }
 }
 </script>
