@@ -246,7 +246,7 @@
 
             <section class="flex mb-4 message -right">
               <div class="flex-1 nes-balloon from-right is-dark">
-                <p>Great! If you have more questions, <a href="">head over to the docs</a>."</p>
+                <p>Great! If you have more questions, <a href="">head over to the docs</a>.</p>
               </div>
               <div class="flex-none w-32 flex flex-column">
                 <img class="w-32 mt-auto mx-auto nes-avatar is-large" src="../assets/cat.png" style="image-rendering: pixelated;">
@@ -306,7 +306,7 @@ export default {
   },
 
   mounted () {
-    console.log(this.$near)
+    // console.log(this.$near)
 
     setInterval(() => {
       this.catBool = !this.catBool
