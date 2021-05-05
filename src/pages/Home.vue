@@ -142,7 +142,7 @@
         </h2>
         <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0 relative">
           <div class="inline-flex rounded-md shadow z-1">
-            <a class="nes-btn p-4" href="#">See All Tasks</a>
+            <a class="nes-btn p-4" href="/tasks">See All Tasks</a>
           </div>
           <img class="h-32 w-full max-w-max absolute z-5 -top-32 r-0" src="../assets/cat_sit.gif" alt="">
         </div>
