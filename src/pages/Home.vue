@@ -94,8 +94,6 @@
         <img class="absolute h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" :class="{hidden: !catBool}" src="../assets/cat_stand.gif" alt="">
         <img class="absolute h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" :class="{hidden: catBool}" src="../assets/cat_walk.gif" alt="">
       </div>
-      <!-- <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-      </div> -->
       <div class="max-w-7xl mx-auto">
         <div class="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
 
@@ -154,7 +152,7 @@
     <div class="flex items-center justify-center py-32 px-4 sm:px-6 lg:px-8">
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="lg:text-center">
-          <h2 class="text-base text-sunset-500 font-semibold tracking-wide uppercase">How can I earn Ⓝ with croncat?</h2>
+          <h2 class="text-base text-sunset-500 font-semibold tracking-wide uppercase">How can I earn with croncat?</h2>
           <p class="mt-2 text-3xl leading-4 font-extrabold tracking-tight text-gray-100 sm:text-4xl">
             Become a CronCat Agent
           </p>
@@ -168,13 +166,13 @@
                 <img class="w-24 mt-auto mx-auto nes-avatar is-large" src="../assets/dog.png" style="image-rendering: pixelated;">
               </div>
               <div class="flex-1 nes-balloon from-left is-dark">
-                <p>I want to be an agent and earn Ⓝ!</p>
+                <p>I want to be an agent and earn <img class="w-6 inline-block" src="../assets/token_white.svg">!</p>
               </div>
             </section>
 
             <section class="flex mb-4 message -right">
               <div class="flex-1 nes-balloon from-right is-dark">
-                <p>Hello friend, it's simple, let's get you setup.</p>
+                <p>Sup dog, it's simple to get you setup.</p>
               </div>
               <div class="flex-none w-32 flex flex-column">
                 <img class="w-32 mt-auto mx-auto nes-avatar is-large" src="../assets/cat.png" style="image-rendering: pixelated;">
@@ -192,7 +190,7 @@
 
             <section class="flex mb-4 message -right">
               <div class="flex-1 nes-balloon from-right is-dark">
-                <p>Yeah, head over to <a href="">the CLI</a> or <a href="">the docs</a> and install croncat agent.</p>
+                <p>Yeah, head over to <a class="text-teal-400 underline" href="">the CLI</a> or <a class="text-teal-400 underline" href="">the docs</a> and install croncat agent.</p>
               </div>
               <div class="flex-none w-32 min-w-min flex flex-column">
                 <img class="w-32 mt-auto mx-auto nes-avatar is-large" src="../assets/cat.png" style="image-rendering: pixelated;">
@@ -210,7 +208,7 @@
 
             <section class="flex mb-4 message -right">
               <div class="flex-1 nes-balloon from-right is-dark">
-                <p>No, you actually need some Ⓝ to pay for transaction fees. Don't worry however, you will also be rewarded with enough Ⓝ to reimburse you for the transaction fee and more.</p>
+                <p>No, you actually need some <img class="w-6 inline-block" src="../assets/token_white.svg"> to pay for transaction fees. Don't worry however, you will also be rewarded with enough <img class="w-6 inline-block" src="../assets/token_white.svg"> to reimburse you for the transaction fee and more.</p>
               </div>
               <div class="flex-none w-32 flex flex-column">
                 <img class="w-32 mt-auto mx-auto nes-avatar is-large" src="../assets/cat.png" style="image-rendering: pixelated;">
@@ -246,7 +244,7 @@
 
             <section class="flex mb-4 message -right">
               <div class="flex-1 nes-balloon from-right is-dark">
-                <p>Great! If you have more questions, <a href="">head over to the docs</a>.</p>
+                <p>Great! If you have more questions, <a class="text-teal-400 underline" href="">head over to the docs</a>.</p>
               </div>
               <div class="flex-none w-32 flex flex-column">
                 <img class="w-32 mt-auto mx-auto nes-avatar is-large" src="../assets/cat.png" style="image-rendering: pixelated;">
@@ -258,27 +256,29 @@
       </div>
     </div>
 
-    <div class="bg-gray-800">
-      <div class="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between flex-wrap">
-          <div class="w-0 flex-1 flex items-center">
-            <p class="ml-3 font-medium text-gray-600 truncate">
-              <span>© CronCat 2020-{{ year }}</span>
-            </p>
+    <div class="">
+      <div class="max-w-7xl mx-auto pt-4 pb-0 px-4 sm:px-6 lg:px-8 lg:flex lg:items-center lg:justify-between relative">
+        <section class="flex mb-4 mx-auto message -right">
+          <div class="flex-1 nes-balloon from-right is-dark mb-12">
+            <p>Proud recipient of the NEAR Grants progam.</p>
           </div>
-          <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-3">
-            <a href="https://github.com/Cron-Near" target="_blank">
-              <i class="nes-icon github is-medium" />
-            </a>
+          <div class="flex-none h-32 flex flex-column">
+            <img class="h-24 mt-auto mx-auto" src="../assets/deal_with_kat.svg">
           </div>
-        </div>
+        </section>
+        <!-- <h4 class="text-md text-gray-300">
+          <span class="block">Proud recipient of the NEAR Grants progam.</span>
+        </h4>
+        <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0 relative">
+          <img class="h-32" src="../assets/deal_with_kat.svg" alt="">
+          <img class="h-32" src="../assets/contract-near.svg" alt="">
+        </div> -->
+        <!-- <img class="h-32 w-72 absolute z-0 top-auto bottom-0 r-0" src="../assets/pixel_break.svg" alt=""> -->
       </div>
     </div>
 
+    <Footer />
 
-
-    <!-- TODO: USE THIS! -->
-    <!-- <img src="https://i.pinimg.com/originals/d2/b6/88/d2b688357b0c20cebde3745a3043108d.gif" alt=""> -->
   </div>
   
 </template>
@@ -286,6 +286,7 @@
 <script>
 import Cadence from '../components/Cadence.vue'
 import Header from '../components/Header.vue'
+import Footer from '../components/Footer.vue'
 export default {
 
   data() {
@@ -297,12 +298,7 @@ export default {
   components: {
     Cadence,
     Header,
-  },
-
-  computed: {
-    year() {
-      return new Date().getFullYear()
-    },
+    Footer,
   },
 
   mounted () {

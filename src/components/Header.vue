@@ -2,12 +2,12 @@
   <div class="relative bg-gray-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="flex justify-between items-center py-6 md:justify-start md:space-x-10">
-        <div class="flex justify-start lg:w-0 lg:flex-1">
+        <a href="/" class="flex justify-start lg:w-0 lg:flex-1">
           <img class="h-full w-48 object-contain" src="../assets/cron_logo_light.png" alt="">
           <!-- <div class="nes-badge">
             <span class="is-error">CRONCAT</span>
           </div> -->
-        </div>
+        </a>
         <div class="md:flex items-center justify-end md:flex-1 lg:w-0 flex">
           <a href="https://github.com/Cron-Near/Cron-Spec" target="_blank" class="flex mr-10 whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -15,7 +15,7 @@
             </svg>
             <span>Docs</span>
           </a>
-          <a href="" class="flex mr-10 whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-100">
+          <a href="/tasks" class="flex mr-10 whitespace-nowrap text-base font-medium text-gray-500 hover:text-gray-100">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>

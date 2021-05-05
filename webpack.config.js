@@ -7,6 +7,9 @@ const CopyPlugin = require('copy-webpack-plugin')
 module.exports = {
   mode: 'production',
   entry: './src/index.js',
+  performance: {
+    hints: false
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js'
@@ -27,7 +30,7 @@ module.exports = {
         }
       },
       {
-        test: /\.(jpg|png|gif)$/,
+        test: /\.(jpg|png|gif|svg)$/,
         use: {
           loader: 'url-loader',
         },
@@ -48,9 +51,11 @@ module.exports = {
     hot: true,
     stats: 'minimal',
     contentBase: path.resolve(__dirname, 'dist'),
-    overlay: true,
+    overlay: false,
     injectClient: false,
-    disableHostCheck: true
+    disableHostCheck: true,
+    historyApiFallback: true,
+    noInfo: true
   },
   plugins: [
     new VueLoaderPlugin(),
