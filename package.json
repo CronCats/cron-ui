@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "webpack serve --mode=development --open",
-    "build": "webpack --mode production",
+    "build": "export NODE_ENV=development && webpack --mode development",
     "build:prod": "export NODE_ENV=production && webpack --mode production",
     "lint": "eslint --cache ."
   },
