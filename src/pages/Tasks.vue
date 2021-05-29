@@ -18,8 +18,10 @@
           <div style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity)); padding: 1rem 1.2rem 1rem 1rem;">
             <div class="nes-select is-dark">
               <select required id="dark_select" v-model="network">
-                <option value="mainnet" selected>Mainnet</option>
-                <option value="testnet">Testnet</option>
+                <option value="mainnet">Mainnet</option>
+                <option value="testnet" selected>Testnet</option>
+                <option value="guildnet">Guildnet</option>
+                <option value="betanet">Betanet</option>
               </select>
             </div>
           </div>
@@ -70,52 +72,53 @@
 </template>
 
 <script>
+import { VueNear } from '../plugins/near'
 import abis from '../utils/contract_abi.json'
 import Cadence from '../components/Cadence.vue'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
 
-const fakeTasks = [
-  {
-    hash: '1',
-    owner_id: 'owner.testnet',
-    contract_id: 'counter.in.testnet',
-    function_id: 'increment',
-    cadence: '0 22 * * 1-5',
-    recurring: true,
-    status: 'Ready',
-    total_deposit: '11000000000000000000000000',
-    deposit: '1000000000000000000000000',
-    gas: '12000000000000',
-    arguments: '{}',
-  },
-  {
-    hash: '2',
-    owner_id: 'owner.testnet',
-    contract_id: 'counter.in.testnet',
-    function_id: 'decrement',
-    cadence: '* * 8 * *',
-    recurring: false,
-    status: 'Ready',
-    total_deposit: '11000000000000000000000000',
-    deposit: '1000000000000000000000000',
-    gas: '12000000000000',
-    arguments: '{}',
-  },
-  {
-    hash: '3',
-    owner_id: 'owner.testnet',
-    contract_id: 'counter.in.testnet',
-    function_id: 'increment',
-    cadence: '0 5 * * * *',
-    recurring: true,
-    status: 'Ready',
-    total_deposit: '1000000000000000000000000',
-    deposit: '10000000000000000000000',
-    gas: '1000000000000',
-    arguments: '{}',
-  },
-]
+// const fakeTasks = [
+//   {
+//     hash: '1',
+//     owner_id: 'owner.testnet',
+//     contract_id: 'counter.in.testnet',
+//     function_id: 'increment',
+//     cadence: '0 22 * * 1-5',
+//     recurring: true,
+//     status: 'Ready',
+//     total_deposit: '11000000000000000000000000',
+//     deposit: '1000000000000000000000000',
+//     gas: '12000000000000',
+//     arguments: '{}',
+//   },
+//   {
+//     hash: '2',
+//     owner_id: 'owner.testnet',
+//     contract_id: 'counter.in.testnet',
+//     function_id: 'decrement',
+//     cadence: '* * 8 * *',
+//     recurring: false,
+//     status: 'Ready',
+//     total_deposit: '11000000000000000000000000',
+//     deposit: '1000000000000000000000000',
+//     gas: '12000000000000',
+//     arguments: '{}',
+//   },
+//   {
+//     hash: '3',
+//     owner_id: 'owner.testnet',
+//     contract_id: 'counter.in.testnet',
+//     function_id: 'increment',
+//     cadence: '0 5 * * * *',
+//     recurring: true,
+//     status: 'Ready',
+//     total_deposit: '1000000000000000000000000',
+//     deposit: '10000000000000000000000',
+//     gas: '1000000000000',
+//     arguments: '{}',
+//   },
+// ]
 
 export default {
 
@@ -123,7 +126,7 @@ export default {
     return {
       loading: true,
       prog: 0,
-      tasks: fakeTasks,
+      tasks: [],
       network: 'testnet',
     }
   },
@@ -136,22 +139,22 @@ export default {
 
   methods: {
     async loadTasks() {
-      if (!this.$near) return
       let timer = setInterval(() => {
         this.prog += 6
         if (this.prog > 95) this.prog = 99
       }, 50)
 
       // load contract based on abis & type
-      // const contract = await this.$near.getContractInstance(abis[this.network].manager, abis.abis.manager)
-      const res = await this.$near.near.connection.provider.query({
+      const $near = await new VueNear(this.network)
+      await $near.loadNearProvider()
+      const res = await $near.near.connection.provider.query({
         request_type: 'call_function',
         finality: 'final',
         account_id: abis[this.network].manager,
-        method_name: 'get_tasks',
+        method_name: 'get_all_tasks',
         args_base64: 'e30='
       })
-      // console.log('contract', res.result, res);
+      this.tasks = JSON.parse(Buffer.from(res.result).toString());
       this.loading = false
       clearInterval(timer)
       this.prog = 0
@@ -168,11 +171,6 @@ export default {
   mounted () {
     this.loading = true
     this.loadTasks()
-
-    // wait for near provider to load
-    this.$nextTick(() => {
-      this.loadTasks()
-    })
   }
 }
 </script>

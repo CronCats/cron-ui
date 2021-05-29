@@ -38,11 +38,6 @@ export function getConfig(env, options = {}) {
 
 export class VueNear {
   constructor(env, config) {
-    console.log('nearApi', nearApi);
-    // loading via CDN, requires adding this line to index.html:
-    // <script src="https://cdn.jsdelivr.net/gh/nearprotocol/near-api-js/dist/near-api-js.js" ></script>
-    // if (!window || !window.nearApi) return
-    // this.nearApi = { ...window.nearApi }
     if (!nearApi) return
     this.nearApi = { ...nearApi }
     this.config = getConfig(env, config)
@@ -120,7 +115,6 @@ export default {
     await app.config.globalProperties.$near.loadAccount()
 
     app.provide('near', app.config.globalProperties.$near)
-    // console.log('app', app);
 
     app.provide('$user', app.config.globalProperties.$near.user)
 
