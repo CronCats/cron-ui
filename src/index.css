@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.nes-container.is-dark,
+.nes-balloon.is-dark {
+  background: rgba(17, 24, 39, var(--tw-bg-opacity));
+  background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
+  box-shadow: 0 0 0 8px rgba(17, 24, 39, var(--tw-bg-opacity));
+}
+
+.nes-balloon.is-dark.from-right::after {
+  box-shadow: -4px 0,4px 0,4px 4px rgba(17, 24, 39, var(--tw-bg-opacity)),0 4px,8px 4px,4px 8px,8px 8px;
+}
+
+.nes-balloon.is-dark.from-right::before {
+    box-shadow: 5px 10px 0 6px rgba(17, 24, 39, var(--tw-bg-opacity));
+}
+
+.nes-balloon.is-dark.from-left::before {
+    box-shadow: -5px 10px 0 6px rgba(17, 24, 39, var(--tw-bg-opacity));
+}
+.nes-balloon.is-dark.from-left::before,
+.nes-balloon.is-dark.from-right::before {
+    background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
+    border-color: #fff;
+}
+
+
+.nes-balloon.is-dark.from-left::after {
+  box-shadow: -4px 0,4px 0,-4px 4px rgba(17, 24, 39, var(--tw-bg-opacity)),0 4px,-8px 4px,-4px 8px,-8px 8px;
+}
+.nes-balloon.is-dark.from-left::after,
+.nes-balloon.is-dark.from-right::after {
+  background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
+}
+.nes-select.is-dark select {
+  background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
+}
+
+.nes-container.is-dark.with-title > .title {
+  background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
+}
