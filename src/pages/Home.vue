@@ -118,12 +118,12 @@
               </div>
               <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                 <div class="mr-8">
-                  <a href="#" class="w-full flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+                  <a href="https://docs.cron.cat/docs/" target="_blank" class="w-full flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
                     Integrate
                   </a>
                 </div>
                 <div class="mt-3 sm:mt-0 sm:ml-3">
-                  <a href="#" class="w-full flex items-center justify-center px-8 py-3 nes-btn md:py-4 md:text-lg md:px-10">
+                  <a href="https://docs.cron.cat/docs/examples/" target="_blank" class="w-full flex items-center justify-center px-8 py-3 nes-btn md:py-4 md:text-lg md:px-10">
                     Examples
                   </a>
                 </div>
@@ -190,7 +190,7 @@
 
             <section class="flex mb-4 message -right">
               <div class="flex-1 nes-balloon from-right is-dark">
-                <p>Yeah, head over to <a class="text-teal-400 underline" href="">the CLI</a> or <a class="text-teal-400 underline" href="">the docs</a> and install croncat agent.</p>
+                <p>Yeah, head over to <a class="text-teal-400 underline" href="https://docs.cron.cat/docs/agent-cli/" target="_blank">the CLI</a> or <a class="text-teal-400 underline" href="https://docs.cron.cat/docs/" target="_blank">the docs</a> and install croncat agent.</p>
               </div>
               <div class="flex-none w-32 min-w-min flex flex-column">
                 <img class="w-32 mt-auto mx-auto nes-avatar is-large" src="../assets/cat.png" style="image-rendering: pixelated;">
@@ -244,7 +244,7 @@
 
             <section class="flex mb-4 message -right">
               <div class="flex-1 nes-balloon from-right is-dark">
-                <p>Great! If you have more questions, <a class="text-teal-400 underline" href="">head over to the docs</a>.</p>
+                <p>Great! If you have more questions, <a class="text-teal-400 underline" href="https://docs.cron.cat/docs/" target="_blank">head over to the docs</a>.</p>
               </div>
               <div class="flex-none w-32 flex flex-column">
                 <img class="w-32 mt-auto mx-auto nes-avatar is-large" src="../assets/cat.png" style="image-rendering: pixelated;">
