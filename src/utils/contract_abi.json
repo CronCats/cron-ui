@@ -5,6 +5,12 @@
   "mainnet": {
     "manager": "manager.cron.near"
   },
+  "guildnet": {
+    "manager": "cron.guildnet"
+  },
+  "betanet": {
+    "manager": "cron.betanet"
+  },
   "abis": {
     "manager": {
       "viewMethods": [

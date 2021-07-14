@@ -21,7 +21,7 @@
                 <option value="mainnet">Mainnet</option>
                 <option value="testnet" selected>Testnet</option>
                 <option value="guildnet">Guildnet</option>
-                <option value="betanet">Betanet</option>
+                <!-- <option value="betanet">Betanet</option> -->
               </select>
             </div>
           </div>
@@ -36,8 +36,11 @@
         <progress class="nes-progress is-pattern" :value="prog" max="100"></progress>
         <p class="text-center text-gray-200">Loading...</p>
       </section>
+      <section class="max-w-7xl w-1/2 space-y-8 my-12" v-if="!loading && tasks.length == 0">
+        <p class="text-center text-gray-200">No Tasks Yet!</p>
+      </section>
 
-      <section v-if="!loading" class="max-w-7xl w-full">
+      <section v-if="!loading && tasks.length > 0" class="max-w-7xl w-full">
 
           <div class="nes-container with-title is-rounded is-dark w-full mb-4 min-w-full" style="margin-bottom:1rem;" v-for="task in tasks" :key="task.hash">
             <p class="title text-xs">{{task.contract_id}}</p>
@@ -139,6 +142,8 @@ export default {
 
   methods: {
     async loadTasks() {
+      this.loading = true
+      const account_id = abis[this.network].manager
       let timer = setInterval(() => {
         this.prog += 6
         if (this.prog > 95) this.prog = 99
@@ -147,13 +152,24 @@ export default {
       // load contract based on abis & type
       const $near = await new VueNear(this.network)
       await $near.loadNearProvider()
-      const res = await $near.near.connection.provider.query({
-        request_type: 'call_function',
-        finality: 'final',
-        account_id: abis[this.network].manager,
-        method_name: 'get_all_tasks',
-        args_base64: 'e30='
-      })
+      let res
+
+      try {
+        res = await $near.near.connection.provider.query({
+          request_type: 'call_function',
+          finality: 'final',
+          account_id,
+          method_name: 'get_all_tasks',
+          args_base64: 'e30='
+        })
+      } catch (e) {
+        this.tasks = [];
+        this.loading = false
+        clearInterval(timer)
+        this.prog = 0
+        return
+      }
+
       this.tasks = JSON.parse(Buffer.from(res.result).toString());
       this.loading = false
       clearInterval(timer)
@@ -171,6 +187,10 @@ export default {
   mounted () {
     this.loading = true
     this.loadTasks()
+  },
+
+  watch: {
+    'network': ['loadTasks']
   }
 }
 </script>
