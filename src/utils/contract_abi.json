@@ -1,27 +1,29 @@
 {
   "testnet": {
-    "manager": "cron.in.testnet"
+    "manager": "manager_v1.cron.testnet"
   },
   "mainnet": {
-    "manager": "manager.cron.near"
+    "manager": "manager_v1..cron.near"
   },
   "guildnet": {
-    "manager": "cron.guildnet"
+    "manager": "manager_v1.croncat.guildnet"
   },
   "betanet": {
-    "manager": "cron.betanet"
+    "manager": "manager_v1.croncat.betanet"
   },
   "abis": {
     "manager": {
       "viewMethods": [
+        "version",
+        "get_info",
         "get_tasks",
-        "get_all_tasks",
+        "get_slot_tasks",
         "get_task",
+        "get_agent_tasks",
         "get_agent"
       ],
       "changeMethods": [
         "create_task",
-        "update_task",
         "remove_task",
         "proxy_call",
         "register_agent",

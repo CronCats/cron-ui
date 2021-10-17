@@ -155,11 +155,12 @@ export default {
       let res
 
       try {
+        // TODO: Change to use pagination
         res = await $near.near.connection.provider.query({
           request_type: 'call_function',
           finality: 'final',
           account_id,
-          method_name: 'get_all_tasks',
+          method_name: 'get_tasks',
           args_base64: 'e30='
         })
       } catch (e) {
