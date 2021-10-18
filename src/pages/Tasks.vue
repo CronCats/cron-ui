@@ -5,6 +5,20 @@
     <div class="">
       <div class="max-w-7xl mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
         <div class="flex">
+          <h2 class="pb-4 text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
+            <span class="block">Stats</span>
+          </h2>
+        </div>
+      </div>
+
+      <div class="flex max-w-7xl mx-auto pt-4 lg:pt-8 lg:flex lg:items-center lg:justify-between">
+        <Stat v-for="stat in stats" :key="stat.title" :title="stat.title" :data="stat.data" />
+      </div>
+    </div>
+
+    <div class="">
+      <div class="max-w-7xl mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
+        <div class="flex">
           <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
             <span class="block">Tasks</span>
           </h2>
@@ -84,6 +98,7 @@ import abis from '../utils/contract_abi.json'
 import Cadence from '../components/Cadence.vue'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
+import Stat from '../components/Stat.vue'
 
 // const fakeTasks = [
 //   {
@@ -127,6 +142,64 @@ import Footer from '../components/Footer.vue'
 //   },
 // ]
 
+const statsDefault = [
+  {
+    title: 'Cron',
+    data: [
+      {
+        title: 'Slots',
+        value: '-'
+      },
+      {
+        title: 'Tasks',
+        value: '-'
+      },
+      {
+        title: 'Ratio',
+        value: '-'
+      },
+    ],
+  },
+  {
+    title: 'Agents',
+    data: [
+      {
+        title: 'Active',
+        value: '-'
+      },
+      {
+        title: 'Pending',
+        value: '-'
+      },
+      {
+        title: 'Reward',
+        value: '-',
+        isNear: true,
+      },
+    ],
+  },
+  {
+    title: 'Balances',
+    data: [
+      {
+        title: 'Total',
+        value: '-',
+        isNear: true,
+      },
+      {
+        title: 'Operations',
+        value: '-',
+        isNear: true,
+      },
+      {
+        title: 'Staked',
+        value: '-',
+        isNear: true,
+      },
+    ],
+  },
+]
+
 export default {
 
   data() {
@@ -134,7 +207,10 @@ export default {
       loading: true,
       prog: 0,
       tasks: [],
-      network: 'testnet',
+      network: 'mainnet',
+      nearNetwork: null,
+      nearProvider: null,
+      stats: statsDefault,
     }
   },
 
@@ -142,20 +218,20 @@ export default {
     Cadence,
     Header,
     Footer,
+    Stat,
   },
 
   methods: {
-    async loadTasks() {
-      this.loading = true
-      const account_id = abis[this.network].manager
-      let timer = setInterval(() => {
-        this.prog += 6
-        if (this.prog > 95) this.prog = 99
-      }, 50)
-
+    async queryRpc(method, args) {
       // load contract based on abis & type
-      const $near = await new VueNear(this.network)
-      await $near.loadNearProvider()
+      let $near = this.nearProvider
+      const account_id = abis[this.network].manager
+      if (!$near || this.network !== this.nearNetwork) {
+        $near = await new VueNear(this.network)
+        await $near.loadNearProvider()
+        this.nearProvider = $near
+        this.nearNetwork = this.network
+      }
       let res
 
       try {
@@ -164,21 +240,128 @@ export default {
           request_type: 'call_function',
           finality: 'final',
           account_id,
-          method_name: 'get_tasks',
-          args_base64: 'e30='
+          method_name: method,
+          args_base64: btoa(JSON.stringify(args || {}))
         })
       } catch (e) {
-        this.tasks = [];
+        return
+      }
+
+      return JSON.parse(Buffer.from(res.result).toString());
+    },
+    async loadStats() {
+      this.stats = statsDefault
+      try {
+        // RESPONSE:
+        // paused: res[0],
+        // owner_id: res[1],
+        // agent_active_queue: res[2],
+        // agent_pending_queue: res[3],
+        // agent_task_ratio: res[4],
+        // agents_eject_threshold: res[5],
+        // slots: res[6],
+        // tasks: res[7],
+        // available_balance: res[8],
+        // staked_balance: res[9],
+        // agent_fee: res[10],
+        // gas_price: res[11],
+        // proxy_callback_gas: res[12],
+        // slot_granularity: res[13],
+        // agent_storage_usage: res[14],
+        const res = await this.queryRpc('get_info')
+        if (!res || res.length < 1) return
+        this.stats = [
+          {
+            title: 'Cron',
+            data: [
+              {
+                title: 'Slots',
+                value: res[6]
+              },
+              {
+                title: 'Tasks',
+                value: res[7]
+              },
+              {
+                title: 'Ratio',
+                value: res[4]
+              },
+            ],
+          },
+          {
+            title: 'Agents',
+            data: [
+              {
+                title: 'Active',
+                value: res[2]
+              },
+              {
+                title: 'Pending',
+                value: res[3]
+              },
+              {
+                title: 'Reward',
+                value: this.formatNearAmt(res[10]),
+                isNear: true,
+              },
+            ],
+          },
+          {
+            title: 'Balances',
+            data: [
+              {
+                title: 'Total',
+                value: this.formatNearAmtPrecision(res[15]),
+                isNear: true,
+              },
+              {
+                title: 'Operations',
+                value: this.formatNearAmtPrecision(res[8]),
+                isNear: true,
+              },
+              {
+                title: 'Staked',
+                value: this.formatNearAmtPrecision(res[9]),
+                isNear: true,
+              },
+            ],
+          },
+        ]
+      } catch (e) {
+        return
+      }
+    },
+    async loadTasks() {
+      this.loading = true
+      let timer = setInterval(() => {
+        this.prog += 6
+        if (this.prog > 95) this.prog = 99
+      }, 50)
+
+      // load tasks by RPC
+      let res
+
+      try {
+        console.log('HERE');
+        // TODO: Change to use pagination
+        res = await this.queryRpc('get_tasks', {})
+        this.tasks = res || []
+      } catch (e) {
+        this.tasks = []
         this.loading = false
         clearInterval(timer)
         this.prog = 0
         return
       }
 
-      this.tasks = JSON.parse(Buffer.from(res.result).toString());
       this.loading = false
       clearInterval(timer)
       this.prog = 0
+    },
+    async reloadAll() {
+      this.loading = true
+      this.loadTasks()
+      this.loadStats()
     },
     formatNearAmt(amount) {
       return this.$near.nearApi.utils.format.formatNearAmount(amount)
@@ -187,15 +370,18 @@ export default {
       const gas = this.$near.nearApi.utils.format.formatNearAmount(amount)
       return `${parseFloat(gas) * 1e12} Tgas`
     },
+    formatNearAmtPrecision(amount, digits = 2) {
+      const raw = this.$near.nearApi.utils.format.formatNearAmount(amount)
+      return parseFloat(raw).toFixed(digits)
+    },
   },
 
   mounted () {
-    this.loading = true
-    this.loadTasks()
+    this.reloadAll()
   },
 
   watch: {
-    'network': ['loadTasks']
+    'network': ['reloadAll']
   }
 }
 </script>
