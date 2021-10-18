@@ -3,7 +3,7 @@
     "manager": "manager_v1.cron.testnet"
   },
   "mainnet": {
-    "manager": "manager_v1..cron.near"
+    "manager": "manager_v1.croncat.near"
   },
   "guildnet": {
     "manager": "manager_v1.croncat.guildnet"

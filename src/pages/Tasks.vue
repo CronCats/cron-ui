@@ -62,6 +62,10 @@
                 <span>{{formatNearAmt(task.deposit)}}</span>
                 <img class="w-6 inline-block" src="../assets/token_white.svg">
               </div>
+              <div class="flex" v-if="task.total_deposit">
+                <span>{{formatNearAmt(task.total_deposit)}}</span>
+                <img class="w-6 inline-block" src="../assets/token_white.svg">
+              </div>
             </div>
           </div>
 
