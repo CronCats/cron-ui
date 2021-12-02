@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <div v-if="!accountId" class="flex items-center font-bold cursor-pointer p-2" @click.prevent="login">
+    <div v-if="!accountId" class="flex items-center font-bold p-2 text-gray-500 hover:text-gray-100" @click.prevent="login">
       <NearToken class="w-6 h-6 my-auto mr-2" />
       <span>Login</span>
     </div>
