@@ -56,34 +56,40 @@
 
       <section v-if="!loading && tasks.length > 0" class="max-w-7xl w-full">
 
-          <div class="nes-container with-title is-rounded is-dark w-full mb-4 min-w-full" style="margin-bottom:1rem;" v-for="task in tasks" :key="task.hash">
-            <p class="title text-xs">{{task.contract_id}}</p>
-            <div class="flex items-center justify-between">
-              <div class="flex">{{task.function_id}}</div>
-              <div class="flex nes-badge">
-                <span class="is-dark" style="font-size: 8pt;">{{task.cadence}}</span>
-              </div>
-              <div class="flex">
-                <svg v-if="task.recurring" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span v-if="!task.recurring">-</span>
-              </div>
-              <div class="flex" v-if="task.gas">
-                <span>{{formatGasAmt(task.gas)}}</span>
-              </div>
-              <div class="flex" v-if="task.deposit">
-                <span>{{formatNearAmt(task.deposit)}}</span>
-                <img class="w-6 inline-block" src="../assets/token_white.svg">
-              </div>
-              <div class="flex" v-if="task.total_deposit">
-                <span>{{formatNearAmt(task.total_deposit)}}</span>
-                <img class="w-6 inline-block" src="../assets/token_white.svg">
-              </div>
+        <div class="nes-container with-title is-rounded is-dark w-full mb-4 min-w-full" style="margin-bottom:1rem;" v-for="task in tasks" :key="task.hash">
+          <p class="title text-xs">{{task.contract_id}}</p>
+          <div class="flex items-center justify-between">
+            <div class="flex">{{task.function_id}}</div>
+            <div class="flex nes-badge">
+              <span class="is-dark" style="font-size: 8pt;">{{task.cadence}}</span>
+            </div>
+            <div class="flex">
+              <svg v-if="task.recurring" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span v-if="!task.recurring">-</span>
+            </div>
+            <div class="flex" v-if="task.gas">
+              <span>{{formatGasAmt(task.gas)}}</span>
+            </div>
+            <div class="flex" v-if="task.deposit">
+              <span>{{formatNearAmt(task.deposit)}}</span>
+              <img class="w-6 inline-block" src="../assets/token_white.svg">
+            </div>
+            <div class="flex" v-if="task.total_deposit">
+              <span>{{formatNearAmt(task.total_deposit)}}</span>
+              <img class="w-6 inline-block" src="../assets/token_white.svg">
             </div>
           </div>
+        </div>
 
-        </section>
+        <div v-if="tasks.length < totalTasks">
+          <button @click.prevent="nextPage" class="mx-auto flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+            Load More Tasks
+          </button>
+        </div>
+
+      </section>
     </div>
 
     <Footer />
@@ -99,6 +105,8 @@ import Cadence from '../components/Cadence.vue'
 import Header from '../components/Header.vue'
 import Footer from '../components/Footer.vue'
 import Stat from '../components/Stat.vue'
+
+const knownNetworks = Object.keys(abis).filter(a => a !== 'abis')
 
 // const fakeTasks = [
 //   {
@@ -211,6 +219,11 @@ export default {
       nearNetwork: null,
       nearProvider: null,
       stats: statsDefault,
+
+      // pagination thangs
+      from_index: 0,
+      limit: 10,
+      totalTasks: 0,
     }
   },
 
@@ -235,7 +248,6 @@ export default {
       let res
 
       try {
-        // TODO: Change to use pagination
         res = await $near.near.connection.provider.query({
           request_type: 'call_function',
           finality: 'final',
@@ -270,6 +282,7 @@ export default {
         // agent_storage_usage: res[14],
         const res = await this.queryRpc('get_info')
         if (!res || res.length < 1) return
+        this.totalTasks = parseInt(res[7], 10) || 0
         this.stats = [
           {
             title: 'Cron',
@@ -342,10 +355,9 @@ export default {
       let res
 
       try {
-        console.log('HERE');
-        // TODO: Change to use pagination
-        res = await this.queryRpc('get_tasks', {})
-        this.tasks = res || []
+        res = await this.queryRpc('get_tasks', { from_index: `${this.from_index}`, limit: `${this.limit}` })
+        if (this.from_index === 0) this.tasks = res || []
+        else this.tasks = this.tasks.concat(res || [])
       } catch (e) {
         this.tasks = []
         this.loading = false
@@ -358,7 +370,13 @@ export default {
       clearInterval(timer)
       this.prog = 0
     },
+    nextPage() {
+      this.from_index = this.from_index + this.limit
+      this.loadTasks()
+    },
     async reloadAll() {
+      this.from_index = 0
+      this.totalTasks = 0
       this.loading = true
       this.loadTasks()
       this.loadStats()
@@ -377,6 +395,13 @@ export default {
   },
 
   mounted () {
+    // Check query string for pre-selected network
+    const params = new URLSearchParams(location.search)
+    const network = params.get('network') ? params.get('network') : null
+    if (network && knownNetworks.includes(network)) {
+      this.network = network
+    }
+
     this.reloadAll()
   },
 
