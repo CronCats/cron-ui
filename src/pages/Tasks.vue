@@ -8,6 +8,10 @@
           <h2 class="pb-4 text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
             <span class="block">Stats</span>
           </h2>
+          <div class="relative h-12 w-72">
+            <img class="w-96 absolute -bottom-1" v-if="!loading" src="../assets/cat_sit.gif" alt="">
+            <img class="w-96 absolute -bottom-1" v-if="loading" src="../assets/cat_load.gif" alt="">
+          </div>
         </div>
       </div>
 
@@ -22,10 +26,6 @@
           <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
             <span class="block">Tasks</span>
           </h2>
-          <div class="relative h-12 w-72">
-            <img class="w-96 absolute -bottom-4" v-if="!loading" src="../assets/cat_sit.gif" alt="">
-            <img class="w-96 absolute -bottom-4" v-if="loading" src="../assets/cat_load.gif" alt="">
-          </div>
         </div>
 
         <div class="flex">
@@ -46,7 +46,7 @@
     </div>
 
     <div class="flex items-center justify-center py-8 px-0 sm:px-6 lg:px-8">
-      <section class="max-w-7xl w-1/2 space-y-8 my-12" v-if="loading">
+      <section class="max-w-7xl w-1/2 space-y-8 my-12" v-if="loading && tasks.length == 0">
         <progress class="nes-progress is-pattern" :value="prog" max="100"></progress>
         <p class="text-center text-gray-200">Loading...</p>
       </section>
@@ -54,7 +54,7 @@
         <p class="text-center text-gray-200">No Tasks Yet!</p>
       </section>
 
-      <section v-if="!loading && tasks.length > 0" class="max-w-7xl w-full">
+      <section v-if="tasks.length > 0" class="max-w-7xl w-full">
 
         <div class="nes-container with-title is-rounded is-dark w-full mb-4 min-w-full" style="margin-bottom:1rem;" v-for="task in tasks" :key="task.hash">
           <p class="title text-xs">{{task.contract_id}}</p>
@@ -82,8 +82,12 @@
             </div>
           </div>
         </div>
+        
+        <div v-if="loading && tasks.length > 0">
+          <progress class="nes-progress is-pattern" :value="prog" max="100"></progress>
+        </div>
 
-        <div v-if="tasks.length < totalTasks">
+        <div v-if="tasks.length < totalTasks && !loading">
           <button @click.prevent="nextPage" class="mx-auto flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
             Load More Tasks
           </button>
@@ -350,6 +354,11 @@ export default {
         this.prog += 6
         if (this.prog > 95) this.prog = 99
       }, 50)
+
+      // update the query history
+      const url = new URL(window.location)
+      url.searchParams.set('network', this.network)
+      window.history.pushState({}, '', url)
 
       // load tasks by RPC
       let res
