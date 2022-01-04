@@ -8,7 +8,8 @@ import './index.css'
 
 const routes = {
   '/': 'Home',
-  '/tasks': 'Tasks'
+  '/tasks': 'Tasks',
+  '/create-task': 'CreateTask',
 }
 
 const SimpleRouter = {

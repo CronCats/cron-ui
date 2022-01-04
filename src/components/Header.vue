@@ -1,7 +1,7 @@
 <template>
   <div class="relative bg-gray-900">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex justify-between items-center py-6 md:justify-start md:space-x-10">
+    <div class="w-full">
+      <div class="flex justify-between items-center p-4 md:justify-start md:space-x-10">
         <a href="/" class="flex justify-start lg:w-0 lg:flex-1">
           <img class="h-full w-48 object-contain" src="../assets/cron_logo_light.png" alt="">
           <!-- <div class="nes-badge">
