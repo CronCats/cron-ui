@@ -34,7 +34,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="contract_id" class="text-gray-200">Contract Account ID</label>
-              <input tabindex="2" type="text" id="contract_id" class="nes-input is-dark block my-4" placeholder="counter.example.near" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="2" type="text" id="contract_id" class="nes-input is-dark block my-4" v-model="task.contract_id" placeholder="counter.example.near" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
             </div>
             <p class="text-gray-500 text-xs">
               The contract account that will get called by CronCat. Example: "counter.example.near"
@@ -44,7 +44,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="function_id" class="text-gray-200">Function Name</label>
-              <input tabindex="3" type="text" id="function_id" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="3" type="text" id="function_id" v-model="task.function_id" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
             </div>
             <p class="text-gray-500 text-xs">
               A function that does custom logic in your contract. Example: "increment"
@@ -54,7 +54,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="cadence" class="text-gray-200">Cadence</label>
-              <input tabindex="4" type="text" id="cadence" placeholder="0 0 * * * *" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="4" type="text" id="cadence" v-model="task.cadence" placeholder="0 0 * * * *" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
             </div>
             <p class="text-gray-500 text-xs">
               Schedule timing based on the crontab standard. <a href="https://crontab.guru/" target="_blank" class="text-teal-400 underline">Validate your schedule here</a>
@@ -64,7 +64,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="deposit" class="text-gray-200">Deposit</label>
-              <input tabindex="5" type="text" id="deposit" placeholder="1000000000000000000000000" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="5" type="text" id="deposit" v-model="task.deposit" placeholder="1000000000000000000000000" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
             </div>
             <p class="text-gray-500 text-xs">
               The amount of NEAR to be attached to each task call. Specify Yocto. Example: "1000000000000000000000000" (1 NEAR)
@@ -74,7 +74,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="gas" class="text-gray-200">Gas</label>
-              <input tabindex="6" type="text" id="gas" placeholder="9000000000000" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="6" type="text" id="gas" v-model="task.gas" placeholder="9000000000000" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
             </div>
             <p class="text-gray-500 text-xs">
               The upper limit of Gas needed for the function to execute. If a contract needs 7 Tgas to execute, best to attach 9 Tgas. Extra gas/fee will be given to Agent as reimbursement. Example: "9000000000000"
@@ -84,7 +84,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="arguments" class="text-gray-200">Arguments</label>
-              <input tabindex="7" type="text" id="arguments" placeholder="e30=" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="7" type="text" id="arguments" v-model="task.arguments" placeholder="e30=" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
             </div>
             <p class="text-gray-500 text-xs">
               Any Base64 encoded arguments needed to be attached to each task call. <a href="https://www.base64encode.org/" target="_blank" class="text-teal-400 underline">Encode JSON args here</a>
@@ -94,7 +94,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="calls" class="text-gray-200">Number of Calls</label>
-              <input tabindex="8" type="text" id="calls" placeholder="9" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="8" type="text" id="calls" v-model="task.calls" placeholder="9" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
             </div>
             <p class="text-gray-500 text-xs">
               How many times will this task need to execute? It will help calculate the total NEAR needed for task creation.
@@ -131,6 +131,7 @@
 
 <script>
 import { VueNear } from '../plugins/near'
+import BN from 'bn.js'
 import abis from '../utils/contract_abi.json'
 import Cadence from '../components/Cadence.vue'
 import Header from '../components/Header.vue'
@@ -138,54 +139,36 @@ import Footer from '../components/Footer.vue'
 import Stat from '../components/Stat.vue'
 
 const knownNetworks = Object.keys(abis).filter(a => a !== 'abis')
+const NEAR_NOMINATION_EXP = 24
+const NEAR_NOMINATION = new BN('10', 10).pow(new BN(NEAR_NOMINATION_EXP, 10))
 
-const fakeTask = {
-  hash: '1',
-  owner_id: 'owner.testnet',
-  contract_id: 'counter.in.testnet',
-  function_id: 'increment',
-  cadence: '0 22 * * 1-5',
-  recurring: true,
-  deposit: '1000000000000000000000000',
-  gas: '12000000000000',
-  arguments: '{}',
-}
+// const fakeTask = {
+//   contract_id: 'counter.in.testnet',
+//   function_id: 'increment',
+//   cadence: '0 22 * * 1-5',
+//   recurring: true,
+//   deposit: '1000000000000000000000000',
+//   gas: '12000000000000',
+//   arguments: '{}',
+// }
 
 export default {
 
   data() {
     return {
-      loading: true,
-      prog: 0,
-      tasks: [],
       network: 'mainnet',
       nearNetwork: null,
       nearProvider: null,
 
-      summary: {
-        title: 'Amounts',
-        data: [
-          {
-            title: 'Total NEAR',
-            value: '-',
-            isNear: true,
-          },
-          {
-            title: 'Total Gas Used',
-            value: '-',
-            isNear: true,
-          },
-          {
-            title: 'Total Deposits',
-            value: '-',
-            isNear: true,
-          },
-          {
-            title: 'Total Calls',
-            value: '-'
-          },
-        ],
-      },
+      task: {
+        contract_id: '',
+        function_id: '',
+        cadence: '0 0 * * * *',
+        deposit: '100000000000000000000000',
+        gas: '1000000000000',
+        arguments: 'e30=',
+        calls: 10,
+      }
     }
   },
 
@@ -194,6 +177,45 @@ export default {
     Header,
     Footer,
     Stat,
+  },
+
+  computed: {
+    summary() {
+      const calls = new BN(`${this.task.calls}`)
+      // TODO: Change to dynamic
+      const agent = new BN(0.0005)
+      const agent_total = agent.mul(calls)
+      const fee = new BN(this.task.gas, 10)
+      const fee_total = fee.mul(calls).mul(new BN(1e9)).add(agent_total)
+      const total = new BN(this.task.deposit, 10)
+      const total_deposit_amount = total.mul(calls)
+      const total_near_amount = total.mul(calls).add(fee_total)
+
+      return {
+        title: 'Amounts',
+        data: [
+          {
+            title: 'Total Cost',
+            value: this.formatNearAmt(total_near_amount.toString()),
+            isNear: true,
+          },
+          {
+            title: 'Total Fees',
+            value: this.formatNearAmt(fee_total.toString()),
+            isNear: true,
+          },
+          {
+            title: 'Total Deposits',
+            value: this.formatNearAmt(total_deposit_amount.toString()),
+            isNear: true,
+          },
+          {
+            title: 'Total Calls',
+            value: this.task.calls
+          },
+        ],
+      }
+    },
   },
 
   methods: {
@@ -255,15 +277,13 @@ export default {
     //   this.prog = 0
     // },
     formatNearAmt(amount) {
-      return this.$near.nearApi.utils.format.formatNearAmount(amount)
+      if (!this.$near) return '0'
+      return this.$near.nearApi.utils.format.formatNearAmount(`${amount}`)
     },
-    formatGasAmt(amount) {
-      const gas = this.$near.nearApi.utils.format.formatNearAmount(amount)
-      return `${parseFloat(gas) * 1e12} Tgas`
-    },
-    formatNearAmtPrecision(amount, digits = 2) {
-      const raw = this.$near.nearApi.utils.format.formatNearAmount(amount)
-      return parseFloat(raw).toFixed(digits)
+    formatGasAmt(amount, digits = 6) {
+      if (!this.$near) return '0'
+      const gas = this.$near.nearApi.utils.format.formatNearAmount(`${amount}`)
+      return `${(parseFloat(gas) * 1e9).toFixed(digits)}`
     },
   },
 
@@ -274,6 +294,8 @@ export default {
     if (network && knownNetworks.includes(network)) {
       this.network = network
     }
+
+    this.task.gas = '900000000000'
 
     // this.reloadAll()
   },
