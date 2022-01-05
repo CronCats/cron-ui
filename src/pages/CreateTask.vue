@@ -2,7 +2,28 @@
   <div>
     <Header />
 
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto" v-if="!accountId">
+      <div class="pt-12 lg:pt-16 lg:flex lg:items-center lg:justify-between">
+        <div class="flex flex-col">
+          <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
+            <span class="block">Create Task</span>
+          </h2>
+          <h3 class="mt-24 text-xl font-extrabold tracking-tight text-gray-300">
+            <span class="block">Login Required!</span>
+          </h3>
+
+          <p class="my-8 text-gray-400">
+            Before you can create a task, you must be logged in with NEAR.
+          </p>
+
+          <button tabindex="9" @click.prevent="login" class="mr-auto mb-24 flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+            Login with NEAR
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto" v-if="accountId">
 
       <div class="pt-12 lg:pt-16 lg:flex lg:items-center lg:justify-between">
         <div class="flex">
@@ -34,7 +55,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="contract_id" class="text-gray-200">Contract Account ID</label>
-              <input tabindex="2" type="text" id="contract_id" class="nes-input is-dark block my-4" v-model="task.contract_id" placeholder="counter.example.near" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="2" type="text" id="contract_id" class="nes-input is-dark block my-4" @blur="validateContractId" v-model="task.contract_id" placeholder="counter.example.near" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));" :class="{'is-success': validContractId == true, 'is-error': validContractId == false}">
             </div>
             <p class="text-gray-500 text-xs">
               The contract account that will get called by CronCat. Example: "counter.example.near"
@@ -44,7 +65,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="function_id" class="text-gray-200">Function Name</label>
-              <input tabindex="3" type="text" id="function_id" v-model="task.function_id" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="3" type="text" id="function_id" @blur="validateFunctionId" v-model="task.function_id" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));" :class="{'is-success': validFunctionId == true, 'is-error': validFunctionId == false}">
             </div>
             <p class="text-gray-500 text-xs">
               A function that does custom logic in your contract. Example: "increment"
@@ -54,7 +75,7 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="cadence" class="text-gray-200">Cadence</label>
-              <input tabindex="4" type="text" id="cadence" v-model="task.cadence" placeholder="0 0 * * * *" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));">
+              <input tabindex="4" type="text" id="cadence" @blur="validateCadence" v-model="task.cadence" placeholder="0 0 * * * *" class="nes-input is-dark block my-4" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));" :class="{'is-success': validCadence == true, 'is-error': validCadence == false}">
             </div>
             <p class="text-gray-500 text-xs">
               Schedule timing based on the crontab standard. <a href="https://crontab.guru/" target="_blank" class="text-teal-400 underline">Validate your schedule here</a>
@@ -104,7 +125,7 @@
         </div>
 
         <div class="flex flex-col">
-          <h3 class="text-md font-bold tracking-tight text-gray-300 sm:text-3xl">
+          <h3 class="text-md font-bold tracking-tight text-gray-300">
             <span class="block">Task Summary</span>
           </h3>
 
@@ -112,9 +133,19 @@
             <Stat :key="summary.title" :title="summary.title" :data="summary.data" class="w-full" />
           </div>
 
-          <div v-if="true">
-            <button @click.prevent="" class="mx-auto flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+          <div v-if="!isSubmitting && !isComplete">
+            <button tabindex="9" @click.prevent="createTask" class="mx-auto flex items-center justify-center px-8 py-3 nes-btn md:py-4 md:text-lg md:px-10" :class="{'is-success': allFieldsValid == true, 'is-disabled': allFieldsValid == false}">
               Create Task
+            </button>
+          </div>
+          <div v-if="isSubmitting && !isComplete">
+            <button class="mx-auto flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+              Creating Task...
+            </button>
+          </div>
+          <div v-if="isSubmitting && isComplete">
+            <button class="mx-auto flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+              Task Created!
             </button>
           </div>
         </div>
@@ -159,6 +190,19 @@ export default {
       network: 'mainnet',
       nearNetwork: null,
       nearProvider: null,
+      accountId: null,
+      contract_paused: false,
+      agent_fee: 0.0005,
+      gas_price: 1e9,
+
+      // validations
+      validContractId: null,
+      validFunctionId: null,
+      validCadence: null,
+
+      // Flow
+      isSubmitting: false,
+      isComplete: false,
 
       task: {
         contract_id: '',
@@ -182,11 +226,10 @@ export default {
   computed: {
     summary() {
       const calls = new BN(`${this.task.calls}`)
-      // TODO: Change to dynamic
-      const agent = new BN(0.0005)
+      const agent = new BN(this.agent_fee)
       const agent_total = agent.mul(calls)
       const fee = new BN(this.task.gas, 10)
-      const fee_total = fee.mul(calls).mul(new BN(1e9)).add(agent_total)
+      const fee_total = fee.mul(calls).mul(new BN(this.gas_price)).add(agent_total)
       const total = new BN(this.task.deposit, 10)
       const total_deposit_amount = total.mul(calls)
       const total_near_amount = total.mul(calls).add(fee_total)
@@ -216,10 +259,31 @@ export default {
         ],
       }
     },
+    allFieldsValid() {
+      return this.validContractId === true && this.validFunctionId === true && this.validCadence === true
+    },
   },
 
   methods: {
-    async queryRpc(method, args) {
+    updateQueryUri() {
+      // update the query history
+      const url = new URL(window.location)
+      url.searchParams.set('network', this.network)
+      window.history.pushState({}, '', url)
+    },
+    parseResponse(result) {
+      return JSON.parse(Buffer.from(result).toString())
+    },
+    async login() {
+      await this.$near.loginAccount()
+    },
+    async setAccount() {
+      if (!this.$near) return;
+      this.accountId = this.$near.user && this.$near.user.accountId ? this.$near.user.accountId : null
+      if (!this.accountId) return
+      this.account = this.$near.user
+    },
+    async queryRpc(method, args, options = {}) {
       // load contract based on abis & type
       let $near = this.nearProvider
       const account_id = abis[this.network].manager
@@ -237,45 +301,109 @@ export default {
           finality: 'final',
           account_id,
           method_name: method,
+          ...options,
           args_base64: btoa(JSON.stringify(args || {}))
         })
       } catch (e) {
-        return
+        return `${e}`
       }
 
-      return JSON.parse(Buffer.from(res.result).toString());
+      return options && typeof options.request_type !== 'undefined' ? res : this.parseResponse(res.result)
     },
-    // async loadTasks() {
-    //   this.loading = true
-    //   let timer = setInterval(() => {
-    //     this.prog += 6
-    //     if (this.prog > 95) this.prog = 99
-    //   }, 50)
+    async loadInfo() {
+      try {
+        // RESPONSE:
+        // paused: res[0],
+        // agent_fee: res[10],
+        // gas_price: res[11],
+        const res = await this.queryRpc('get_info')
+        if (!res || res.length < 1) return
+        console.log("INFO", res);
+        this.contract_paused = res[0]
+        this.agent_fee = parseFloat(this.formatNearAmt(res[10]))
+        this.gas_price = parseInt(res[11])
+      } catch (e) {
+        return
+      }
+    },
+    async validateContractId() {
+      this.updateQueryUri()
 
-    //   // update the query history
-    //   const url = new URL(window.location)
-    //   url.searchParams.set('network', this.network)
-    //   window.history.pushState({}, '', url)
+      try {
+        const res = await this.queryRpc('account', {}, {
+          request_type: 'view_account',
+          account_id: `${this.task.contract_id}`,
+          finality: 'optimistic',
+        })
+        if (!res || res.error) this.validContractId = false
+        if (res && res.amount) this.validContractId = true
+      } catch (e) {
+        // TODO: Handle failed RPC
+        // console.log(e)
+      }
+    },
+    async validateFunctionId() {
+      this.updateQueryUri()
+      if (typeof this.validContractId === 'undefined' || this.validContractId === null) this.validContractId = false
 
-    //   // load tasks by RPC
-    //   let res
+      try {
+        const res = await this.queryRpc(`${this.task.function_id}`, {}, { account_id: `${this.task.contract_id}` })
+        if (!res) this.validFunctionId = false
+        if (res) {
+          // looking for specific error message to confirm function exists
+          if (res.search('MethodNotFound') > -1) {
+            this.validFunctionId = false
+          } else this.validFunctionId = true
+        }
+      } catch (e) {
+        // TODO: Handle failed RPC
+        // console.log(e)
+      }
+    },
+    async validateCadence() {
+      this.updateQueryUri()
 
-    //   try {
-    //     res = await this.queryRpc('get_tasks', { from_index: `${this.from_index}`, limit: `${this.limit}` })
-    //     if (this.from_index === 0) this.tasks = res || []
-    //     else this.tasks = this.tasks.concat(res || [])
-    //   } catch (e) {
-    //     this.tasks = []
-    //     this.loading = false
-    //     clearInterval(timer)
-    //     this.prog = 0
-    //     return
-    //   }
+      try {
+        const res = await this.queryRpc('validate_cadence', { cadence: `${this.task.cadence}` })
+        if (typeof res !== 'undefined') this.validCadence = res
+        else this.validCadence = false
+      } catch (e) {
+        // TODO: Handle failed RPC
+        // console.log(e)
+      }
+    },
+    async createTask() {
+      if (!this.allFieldsValid) return;
+      if (this.contract_paused === true) return;
+      // check auth
+      if (!this.accountId) return;
 
-    //   this.loading = false
-    //   clearInterval(timer)
-    //   this.prog = 0
-    // },
+      // get croncat contract instance
+      let $near = this.nearProvider
+      const contract_id = abis[this.network].manager
+      if (!$near || this.network !== this.nearNetwork) {
+        $near = await new VueNear(this.network)
+        await $near.loadNearProvider()
+        this.nearProvider = $near
+        this.nearNetwork = this.network
+      }
+      const croncat = await $near.getContractInstance(contract_id, abis.abis.manager)
+
+      // update status
+      this.isSubmitting = true
+      this.isComplete = false
+
+      // format new task object, sign & send
+      await croncat.create_task({
+        contract_id: this.task.contract_id,
+        function_id: this.task.function_id,
+        cadence: this.task.cadence,
+        recurring: parseInt(this.task.calls) > 1,
+        deposit: this.task.deposit,
+        gas: this.task.gas,
+        arguments: this.task.arguments,
+      })
+    },
     formatNearAmt(amount) {
       if (!this.$near) return '0'
       return this.$near.nearApi.utils.format.formatNearAmount(`${amount}`)
@@ -287,21 +415,29 @@ export default {
     },
   },
 
-  mounted () {
+  async mounted() {
     // Check query string for pre-selected network
     const params = new URLSearchParams(location.search)
+    console.log('URL params', location.search);
     const network = params.get('network') ? params.get('network') : null
     if (network && knownNetworks.includes(network)) {
       this.network = network
     }
 
+    // Just needs to wait for next tick
+    setTimeout(() => {
+      this.setAccount()
+    }, 40)
+    setTimeout(() => {
+      this.setAccount()
+    }, 2000)
+
+    this.loadInfo()
+
+    // start initial summary calc digest
     this.task.gas = '900000000000'
 
-    // this.reloadAll()
+    // TODO: intercept redirect
   },
-
-  // watch: {
-  //   'network': ['reloadAll']
-  // }
 }
 </script>
