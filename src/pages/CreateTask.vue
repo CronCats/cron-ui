@@ -254,7 +254,7 @@ export default {
         contract_id: '',
         function_id: '',
         cadence: '0 0 * * * *',
-        deposit: '100000000000000000000000',
+        deposit: '0',
         gas: '1000000000000',
         arguments: 'e30=',
         calls: 1,
@@ -338,6 +338,11 @@ export default {
     async setAccount() {
       if (!this.$near) return;
       this.accountId = this.$near.user && this.$near.user.accountId ? this.$near.user.accountId : null
+      if (this.accountId) {
+        if (this.accountId.search('near') > -1) this.network = 'mainnet'
+        if (this.accountId.search('testnet') > -1) this.network = 'testnet'
+        if (this.accountId.search('guildnet') > -1) this.network = 'guildnet'
+      }
     },
     async queryRpc(method, args, options = {}) {
       // load contract based on abis & type
