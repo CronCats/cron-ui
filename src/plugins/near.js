@@ -91,6 +91,7 @@ export class VueNear {
   async getContractInstance(contract_id, abiMethods) {
     if (!this.user || !this.user.accountId) return
     const account = this.walletConnection.account()
+    console.log('account', account);
     const abi = {
       changeMethods: [],
       viewMethods: [],
