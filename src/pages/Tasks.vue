@@ -83,6 +83,24 @@
               <span>{{formatNearAmt(task.total_deposit)}}</span>
               <img class="w-6 inline-block" src="../assets/token_white.svg">
             </div>
+            <div class="flex" v-if="isTaskOwner(task) || isAuthed">
+              <a href="#" class="nes-badge mr-4" v-if="isTaskOwner(task)">
+                <span class="flex is-error">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span class="mr-auto">Delete</span>
+                </span>
+              </a>
+              <a :href="getCloneUrl(task)" class="nes-badge" v-if="isAuthed">
+                <span class="flex is-success">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                  </svg>
+                  <span class="mr-auto">Clone</span>
+                </span>
+              </a>
+            </div>
           </div>
         </div>
         
@@ -225,6 +243,7 @@ export default {
       network: 'mainnet',
       nearNetwork: null,
       nearProvider: null,
+      accountId: null,
       stats: statsDefault,
 
       // pagination thangs
@@ -241,7 +260,33 @@ export default {
     Stat,
   },
 
+  computed: {
+    isAuthed() {
+      if (typeof this.accountId === 'undefined' || this.accountId === null) return false
+      let isSameNetwork = false
+      if (this.accountId) {
+        if (this.network === 'mainnet' && this.accountId.search('near') > -1) isSameNetwork = true
+        if (this.accountId.search(this.network) > -1) isSameNetwork = true
+        if (this.accountId.search(this.network) > -1) isSameNetwork = true
+      }
+      return isSameNetwork
+    },
+  },
+
   methods: {
+    async setAccount() {
+      if (!this.$near) return;
+      this.accountId = this.$near.user && this.$near.user.accountId ? this.$near.user.accountId : null
+    },
+    isTaskOwner(task) {
+      if (!this.isAuthed) return false
+      if (!task || !task.owner_id) return false
+      
+      return task && task.owner_id && task.owner_id === this.accountId
+    },
+    getCloneUrl(task) {
+      return `/create-task?network=${this.network}&contract_id=${task.contract_id}&function_id=${task.function_id}&cadence=${task.cadence}&deposit=${task.deposit}&gas=${task.gas}&arguments=${btoa(task.arguments)}`
+    },
     async queryRpc(method, args) {
       // load contract based on abis & type
       let $near = this.nearProvider
@@ -413,6 +458,14 @@ export default {
     if (network && knownNetworks.includes(network)) {
       this.network = network
     }
+
+    // Just needs to wait for next tick
+    setTimeout(() => {
+      this.setAccount()
+    }, 40)
+    setTimeout(() => {
+      this.setAccount()
+    }, 2000)
 
     this.reloadAll()
   },
