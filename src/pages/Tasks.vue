@@ -29,6 +29,9 @@
         </div>
 
         <div class="flex">
+          <a href="/create-task" class="ml-auto mr-4 my-auto flex items-center justify-center px-4 py-2 nes-btn is-success">
+            Create Task
+          </a>
           <div style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity)); padding: 1rem 1.2rem 1rem 1rem;">
             <div class="nes-select is-dark">
               <select required id="dark_select" v-model="network">
