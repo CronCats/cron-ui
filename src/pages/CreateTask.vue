@@ -2,7 +2,7 @@
   <div>
     <Header />
 
-    <div class="max-w-7xl mx-auto" v-if="!accountId">
+    <div class="max-w-7xl mx-auto" v-if="!accountId && !isComplete">
       <div class="pt-12 lg:pt-16 lg:flex lg:items-center lg:justify-between">
         <div class="flex flex-col">
           <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto" v-if="accountId">
+    <div class="max-w-7xl mx-auto" v-if="accountId && !isComplete">
 
       <div class="pt-12 lg:pt-16 lg:flex lg:items-center lg:justify-between">
         <div class="flex">
@@ -55,10 +55,10 @@
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
               <label for="contract_id" class="text-gray-200">Contract Account ID</label>
-              <input tabindex="2" type="text" id="contract_id" class="nes-input is-dark block my-4" @blur="validateContractId" v-model="task.contract_id" placeholder="counter.example.near" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));" :class="{'is-success': validContractId == true, 'is-error': validContractId == false}">
+              <input tabindex="2" type="text" id="contract_id" class="nes-input is-dark block my-4" @blur="validateContractId" v-model="task.contract_id" :placeholder="exampleContractId" style="background-color:rgba(17, 24, 39, var(--tw-bg-opacity));" :class="{'is-success': validContractId == true, 'is-error': validContractId == false}">
             </div>
             <p class="text-gray-500 text-xs">
-              The contract account that will get called by CronCat. Example: "counter.example.near"
+              The contract account that will get called by CronCat. Example: "{{exampleContractId}}"
             </p>
           </div>
 
@@ -154,6 +154,52 @@
 
     </div>
 
+    <div class="max-w-7xl mx-auto" v-if="isComplete">
+      <div class="pt-12 lg:pt-16 lg:flex lg:items-center lg:justify-between">
+        <div class="flex flex-col">
+          <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
+            <span class="block">Task Created!</span>
+          </h2>
+
+          <p class="my-8 text-gray-400">
+            Your task has been created and has the hash "<span class="text-teal-400 underline">{{newTaskHash}}</span>", please copy this hash for your records to help manage the task in the future.
+          </p>
+
+          <!-- Task sample here -->
+          <div v-if="newTask" class="nes-container with-title is-rounded is-dark w-full mb-12 min-w-full" style="margin-bottom:1rem;">
+            <p class="title text-xs">{{newTask.contract_id}}</p>
+            <div class="flex items-center justify-between">
+              <div class="flex">{{newTask.function_id}}</div>
+              <div class="flex nes-badge">
+                <span class="is-dark" style="font-size: 8pt;">{{newTask.cadence}}</span>
+              </div>
+              <div class="flex">
+                <svg v-if="newTask.recurring" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span v-if="!newTask.recurring">-</span>
+              </div>
+              <div class="flex" v-if="newTask.gas">
+                <span>{{formatGasAmt(newTask.gas)}}</span>
+              </div>
+              <div class="flex" v-if="task.deposit">
+                <span>{{formatNearAmt(newTask.deposit)}}</span>
+                <img class="w-6 inline-block" src="../assets/token_white.svg">
+              </div>
+              <div class="flex" v-if="newTask.total_deposit">
+                <span>{{formatNearAmt(newTask.total_deposit)}}</span>
+                <img class="w-6 inline-block" src="../assets/token_white.svg">
+              </div>
+            </div>
+          </div>
+
+          <a :href="allTasks" class="mx-auto mt-12 mb-24 flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+            View All Tasks
+          </a>
+        </div>
+      </div>
+    </div>
+
     <Footer />
 
   </div>
@@ -162,7 +208,7 @@
 
 <script>
 import { VueNear } from '../plugins/near'
-import BN from 'bn.js'
+import Big from 'big.js'
 import abis from '../utils/contract_abi.json'
 import Cadence from '../components/Cadence.vue'
 import Header from '../components/Header.vue'
@@ -170,8 +216,6 @@ import Footer from '../components/Footer.vue'
 import Stat from '../components/Stat.vue'
 
 const knownNetworks = Object.keys(abis).filter(a => a !== 'abis')
-const NEAR_NOMINATION_EXP = 24
-const NEAR_NOMINATION = new BN('10', 10).pow(new BN(NEAR_NOMINATION_EXP, 10))
 
 // const fakeTask = {
 //   contract_id: 'counter.in.testnet',
@@ -188,12 +232,13 @@ export default {
   data() {
     return {
       network: 'mainnet',
+      txHash: null,
       nearNetwork: null,
       nearProvider: null,
       accountId: null,
       contract_paused: false,
       agent_fee: 0.0005,
-      gas_price: 1e9,
+      gas_price: 1e8,
 
       // validations
       validContractId: null,
@@ -204,6 +249,7 @@ export default {
       isSubmitting: false,
       isComplete: false,
 
+      taskDepositTotal: '0',
       task: {
         contract_id: '',
         function_id: '',
@@ -211,8 +257,11 @@ export default {
         deposit: '100000000000000000000000',
         gas: '1000000000000',
         arguments: 'e30=',
-        calls: 10,
-      }
+        calls: 1,
+      },
+
+      newTaskHash: null,
+      newTask: {},
     }
   },
 
@@ -225,31 +274,33 @@ export default {
 
   computed: {
     summary() {
-      const calls = new BN(`${this.task.calls}`)
-      const agent = new BN(this.agent_fee)
-      const agent_total = agent.mul(calls)
-      const fee = new BN(this.task.gas, 10)
-      const fee_total = fee.mul(calls).mul(new BN(this.gas_price)).add(agent_total)
-      const total = new BN(this.task.deposit, 10)
-      const total_deposit_amount = total.mul(calls)
-      const total_near_amount = total.mul(calls).add(fee_total)
+      const calls = Big(`${this.task.calls}`)
+      const agent_fee = Big(this.agent_fee)
+      const agent_total = agent_fee.times(calls)
+      const fee = Big(this.task.gas, 10)
+      const fee_gas = fee.times(calls).times(Big(this.gas_price)).div(1e24)
+      const fee_total = fee_gas.plus(agent_total)
+      const total = Big(this.task.deposit, 10)
+      const total_deposit_amount = total.times(calls).div(1e24)
+      const total_near_amount = total_deposit_amount.plus(fee_total)
+      this.taskDepositTotal = this.parseNearAmt(total_near_amount.toString())
 
       return {
         title: 'Amounts',
         data: [
           {
             title: 'Total Cost',
-            value: this.formatNearAmt(total_near_amount.toString()),
+            value: total_near_amount.toFixed(4),
             isNear: true,
           },
           {
             title: 'Total Fees',
-            value: this.formatNearAmt(fee_total.toString()),
+            value: fee_total.toFixed(4),
             isNear: true,
           },
           {
             title: 'Total Deposits',
-            value: this.formatNearAmt(total_deposit_amount.toString()),
+            value: total_deposit_amount.toFixed(4),
             isNear: true,
           },
           {
@@ -261,6 +312,13 @@ export default {
     },
     allFieldsValid() {
       return this.validContractId === true && this.validFunctionId === true && this.validCadence === true
+    },
+    exampleContractId() {
+      const factory = this.network === 'mainnet' ? 'near' : this.network
+      return `counter.example.${factory}`
+    },
+    allTasks() {
+      return `/tasks?network=${this.network}`
     },
   },
 
@@ -280,8 +338,6 @@ export default {
     async setAccount() {
       if (!this.$near) return;
       this.accountId = this.$near.user && this.$near.user.accountId ? this.$near.user.accountId : null
-      if (!this.accountId) return
-      this.account = this.$near.user
     },
     async queryRpc(method, args, options = {}) {
       // load contract based on abis & type
@@ -324,6 +380,42 @@ export default {
         this.gas_price = parseInt(res[11])
       } catch (e) {
         return
+      }
+    },
+    async loadTask() {
+      if (!this.newTaskHash) return;
+      try {
+        const res = await this.queryRpc('get_task', { task_hash: `${this.newTaskHash}` })
+        console.log("loadTask", res)
+        this.newTask = res
+      } catch (e) {
+        return
+      }
+    },
+    async loadTxnInfo(txHash) {
+      let $near = this.nearProvider
+      const account_id = abis[this.network].manager
+      if (!$near || this.network !== this.nearNetwork) {
+        $near = await new VueNear(this.network)
+        await $near.loadNearProvider()
+        this.nearProvider = $near
+        this.nearNetwork = this.network
+      }
+
+      try {
+        const res = await this.$near.near.connection.provider.txStatus(txHash, account_id)
+        console.log('TX HASH res', res.status.SuccessValue)
+        // find the task hash so we can load it
+        // atob(res.status.SuccessValue)
+        // "0jPIDCO46RyTGsnZ7A5x3vtty7Vo8J2uMouoFm6F3ss="
+        if (res && res.status && res.status.SuccessValue) {
+          this.isSubmitting = false
+          this.isComplete = true
+          this.newTaskHash = `${atob(res.status.SuccessValue)}`.replace(/\"/g, '')
+          if (this.newTaskHash) await this.loadTask()
+        }
+      } catch (e) {
+        // console.log(e);
       }
     },
     async validateContractId() {
@@ -387,22 +479,30 @@ export default {
         this.nearProvider = $near
         this.nearNetwork = this.network
       }
-      const croncat = await $near.getContractInstance(contract_id, abis.abis.manager)
+      const croncat = await this.$near.getContractInstance(contract_id, abis.abis.manager)
+      if (!croncat) return;
 
       // update status
       this.isSubmitting = true
       this.isComplete = false
 
       // format new task object, sign & send
-      await croncat.create_task({
-        contract_id: this.task.contract_id,
-        function_id: this.task.function_id,
-        cadence: this.task.cadence,
-        recurring: parseInt(this.task.calls) > 1,
-        deposit: this.task.deposit,
-        gas: this.task.gas,
-        arguments: this.task.arguments,
-      })
+      try {
+        await croncat.create_task({
+            contract_id: this.task.contract_id,
+            function_id: this.task.function_id,
+            cadence: this.task.cadence,
+            recurring: parseInt(this.task.calls) > 1,
+            deposit: this.task.deposit,
+            gas: parseInt(this.task.gas),
+            arguments: this.task.arguments,
+          },
+          300000000000000, // gas
+          this.taskDepositTotal, // near amt
+        )
+      } catch (e) {
+        console.log(e)
+      }
     },
     formatNearAmt(amount) {
       if (!this.$near) return '0'
@@ -413,12 +513,16 @@ export default {
       const gas = this.$near.nearApi.utils.format.formatNearAmount(`${amount}`)
       return `${(parseFloat(gas) * 1e9).toFixed(digits)}`
     },
+    parseNearAmt(amount, digits = 2) {
+      return this.$near.nearApi.utils.format.parseNearAmount(amount)
+    },
   },
 
   async mounted() {
     // Check query string for pre-selected network
     const params = new URLSearchParams(location.search)
     console.log('URL params', location.search);
+    this.txHash = params.get('transactionHashes') ? params.get('transactionHashes') : null
     const network = params.get('network') ? params.get('network') : null
     if (network && knownNetworks.includes(network)) {
       this.network = network
@@ -437,7 +541,8 @@ export default {
     // start initial summary calc digest
     this.task.gas = '900000000000'
 
-    // TODO: intercept redirect
+    // intercept redirect
+    if (this.txHash) this.loadTxnInfo(this.txHash)
   },
 }
 </script>

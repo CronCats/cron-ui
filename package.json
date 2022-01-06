@@ -42,6 +42,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
+    "big.js": "^6.1.1",
     "bn.js": "^5.2.0",
     "cron-parser": "^3.4.0",
     "near-api-js": "^0.44.2",
