@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="relative">
     <Header />
 
     <div class="max-w-7xl mx-auto" v-if="!accountId && !isComplete">
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto" v-if="accountId && !isComplete">
+    <div class="flex flex-col max-w-7xl mx-auto" v-if="accountId && !isComplete">
 
       <div class="pt-12 lg:pt-16 lg:flex lg:items-center lg:justify-between">
         <div class="flex">
@@ -37,20 +37,20 @@
 
         <div class="flex flex-col">
 
-          <div class="flex flex-col w-full mb-6">
+          <!-- <div class="flex flex-col w-full mb-6">
             <label for="network" class="text-gray-200 mb-4">Network</label>
             <div class="nes-select is-dark">
               <select tabindex="1" required id="dark_select" v-model="network">
                 <option value="mainnet">Mainnet</option>
                 <option value="testnet" selected>Testnet</option>
                 <option value="guildnet">Guildnet</option>
-                <!-- <option value="betanet">Betanet</option> -->
+                <option value="betanet">Betanet</option>
               </select>
             </div>
             <p class="text-gray-500 text-xs mt-4">
               The network where this task will be deployed to.
             </p>
-          </div>
+          </div> -->
 
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
@@ -126,11 +126,20 @@
 
         <div class="flex flex-col">
           <h3 class="text-md font-bold tracking-tight text-gray-300">
-            <span class="block">Task Summary</span>
+            <span class="block"></span>
           </h3>
 
           <div class="flex w-full pt-4 lg:pt-8 lg:flex lg:items-center lg:justify-between">
-            <Stat :key="summary.title" :title="summary.title" :data="summary.data" class="w-full" />
+            <Stat :key="summary.title" title="Task Summary" :data="summary.data" class="w-full" />
+          </div>
+
+          <div class="w-full mt-4 mb-4" v-if="isExists">
+            <div class="nes-container with-title is-rounded is-dark is-error" style="margin-bottom:1rem;">
+              <p class="title text-xs text-red-500">Task Already Exists!</p>
+              <p class="text-red-500">
+                The task you are trying to create with the hash "<span class="text-teal-400 underline">{{newTaskHash}}</span>" exists already. You need to change your parameters to be able to create a new task.
+              </p>
+            </div>
           </div>
 
           <div v-if="!isSubmitting && !isComplete">
@@ -248,6 +257,7 @@ export default {
       // Flow
       isSubmitting: false,
       isComplete: false,
+      isExists: false,
 
       taskDepositTotal: '0',
       task: {
@@ -387,15 +397,39 @@ export default {
         return
       }
     },
-    async loadTask() {
-      if (!this.newTaskHash) return;
+    async loadTask(taskHash) {
+      if (!taskHash) return;
       try {
-        const res = await this.queryRpc('get_task', { task_hash: `${this.newTaskHash}` })
-        console.log("loadTask", res)
-        this.newTask = res
+        const res = await this.queryRpc('get_task', { task_hash: `${taskHash}` })
+        return res
+      } catch (e) {
+        return null
+      }
+    },
+    async getTaskHash() {
+      if (!this.task.contract_id || !this.task.function_id || !this.task.cadence || !this.accountId) return;
+      let res
+      try {
+        res = await this.queryRpc('get_hash', {
+          contract_id: this.task.contract_id,
+          function_id: this.task.function_id,
+          cadence: this.task.cadence,
+          owner_id: this.accountId,
+        })
+        console.log("getTaskHash", res)
+        return res
       } catch (e) {
         return
       }
+    },
+    async checkIfTaskExists() {
+      const hash = await this.getTaskHash()
+      this.newTaskHash = hash
+      const task = await this.loadTask(hash)
+      if (task && task.owner_id) this.isExists = true
+      else this.isExists = false
+
+      return task && task.owner_id ? true :false
     },
     async loadTxnInfo(txHash) {
       let $near = this.nearProvider
@@ -409,7 +443,6 @@ export default {
 
       try {
         const res = await this.$near.near.connection.provider.txStatus(txHash, account_id)
-        console.log('TX HASH res', res.status.SuccessValue)
         // find the task hash so we can load it
         // atob(res.status.SuccessValue)
         // "0jPIDCO46RyTGsnZ7A5x3vtty7Vo8J2uMouoFm6F3ss="
@@ -417,14 +450,18 @@ export default {
           this.isSubmitting = false
           this.isComplete = true
           this.newTaskHash = `${atob(res.status.SuccessValue)}`.replace(/\"/g, '')
-          if (this.newTaskHash) await this.loadTask()
+          if (this.newTaskHash) {
+            this.newTask = await this.loadTask(this.newTaskHash)
+          }
         }
       } catch (e) {
         // console.log(e);
       }
     },
     async validateContractId() {
+      // this.validContractId = null
       this.updateQueryUri()
+      this.isExists = false
 
       try {
         const res = await this.queryRpc('account', {}, {
@@ -437,10 +474,13 @@ export default {
       } catch (e) {
         // TODO: Handle failed RPC
         // console.log(e)
+        this.validContractId = false
       }
     },
     async validateFunctionId() {
+      // this.validFunctionId = null
       this.updateQueryUri()
+      this.isExists = false
       if (typeof this.validContractId === 'undefined' || this.validContractId === null) this.validContractId = false
 
       try {
@@ -455,10 +495,13 @@ export default {
       } catch (e) {
         // TODO: Handle failed RPC
         // console.log(e)
+        this.validFunctionId = false
       }
     },
     async validateCadence() {
+      // this.validCadence = null
       this.updateQueryUri()
+      this.isExists = false
 
       try {
         const res = await this.queryRpc('validate_cadence', { cadence: `${this.task.cadence}` })
@@ -467,13 +510,29 @@ export default {
       } catch (e) {
         // TODO: Handle failed RPC
         // console.log(e)
+        this.validCadence = false
       }
     },
-    async createTask() {
-      if (!this.allFieldsValid) return;
+    async validateAll() {
       if (this.contract_paused === true) return;
-      // check auth
       if (!this.accountId) return;
+      // compute ONE LAST TIME all the validations in case we missed it
+      await this.validateContractId()
+      await this.validateFunctionId()
+      await this.validateCadence()
+      await this.checkIfTaskExists()
+    },
+    async createTask() {
+      // check auth
+      if (this.contract_paused === true) return;
+      if (!this.accountId) return;
+      const taskExists = await this.checkIfTaskExists()
+      if (taskExists) return;
+      // compute ONE LAST TIME all the validations in case we missed it
+      await this.validateContractId()
+      await this.validateFunctionId()
+      await this.validateCadence()
+      if (!this.allFieldsValid) return;
 
       // get croncat contract instance
       let $near = this.nearProvider
@@ -521,17 +580,22 @@ export default {
     parseNearAmt(amount, digits = 2) {
       return this.$near.nearApi.utils.format.parseNearAmount(amount)
     },
+    loadQueryParams() {
+      // Check query string for pre-selected network
+      const params = new URLSearchParams(location.search)
+      this.txHash = params.get('transactionHashes') ? params.get('transactionHashes') : null
+      const taskParamKeys = ['contract_id', 'function_id', 'cadence', 'deposit', 'gas', 'arguments']
+
+      // look for all the task params, in case the user is trying to clone from URI
+      taskParamKeys.forEach(k => {
+        if (params.get(k)) this.task[k] = params.get(k)
+      })
+    },
   },
 
   async mounted() {
-    // Check query string for pre-selected network
-    const params = new URLSearchParams(location.search)
-    console.log('URL params', location.search);
-    this.txHash = params.get('transactionHashes') ? params.get('transactionHashes') : null
-    const network = params.get('network') ? params.get('network') : null
-    if (network && knownNetworks.includes(network)) {
-      this.network = network
-    }
+    // start initial summary calc digest
+    this.task.gas = '900000000000'
 
     // Just needs to wait for next tick
     setTimeout(() => {
@@ -539,15 +603,24 @@ export default {
     }, 40)
     setTimeout(() => {
       this.setAccount()
+      this.validateAll()
     }, 2000)
 
+    this.loadQueryParams()
     this.loadInfo()
-
-    // start initial summary calc digest
-    this.task.gas = '900000000000'
 
     // intercept redirect
     if (this.txHash) this.loadTxnInfo(this.txHash)
   },
 }
 </script>
+
+<style>
+.nes-container.is-error {
+	border-image-source: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8" ?><svg version="1.1" width="8" height="8" xmlns="http://www.w3.org/2000/svg"><path d="M3 1 h1 v1 h-1 z M4 1 h1 v1 h-1 z M2 2 h1 v1 h-1 z M5 2 h1 v1 h-1 z M1 3 h1 v1 h-1 z M6 3 h1 v1 h-1 z M1 4 h1 v1 h-1 z M6 4 h1 v1 h-1 z M2 5 h1 v1 h-1 z M5 5 h1 v1 h-1 z M3 6 h1 v1 h-1 z M4 6 h1 v1 h-1 z" fill="rgb(231,110,85)" /></svg>') !important;
+	outline-color: #ce372b !important;
+}
+.nes-container.is-error p {
+  word-wrap: break-word;
+}
+</style>

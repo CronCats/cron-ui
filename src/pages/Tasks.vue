@@ -83,6 +83,24 @@
               <span>{{formatNearAmt(task.total_deposit)}}</span>
               <img class="w-6 inline-block" src="../assets/token_white.svg">
             </div>
+            <div class="flex" v-if="isTaskOwner(task) || isAuthed">
+              <button @click.prevent="checkDeleteTask(task)" class="nes-badge mr-4" v-if="isTaskOwner(task)">
+                <span class="flex is-error">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span class="mr-auto">Delete</span>
+                </span>
+              </button>
+              <a :href="getCloneUrl(task)" class="nes-badge" v-if="isAuthed">
+                <span class="flex is-success">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                  </svg>
+                  <span class="mr-auto">Clone</span>
+                </span>
+              </a>
+            </div>
           </div>
         </div>
         
@@ -98,6 +116,18 @@
 
       </section>
     </div>
+
+    <section v-if="deleteTaskModal == true">
+      <dialog class="nes-dialog is-dark is-rounded" id="dialog-dark-rounded" role="dialog" style="z-index: 100149; top: 20vh;position: fixed;" open="">
+        <p class="title mt-4">Delete Task?</p>
+        <p class="my-8">Are you sure you want to delete this task?</p>
+        <div class="dialog-menu mt-4 flex justify-between">
+          <button @click.prevent="closeModal" class="nes-btn">Cancel</button>
+          <button @click.prevent="confirmDeleteTask" class="nes-btn is-success">Confirm</button>
+        </div>
+      </dialog>
+      <div class="backdrop"></div>
+    </section>
 
     <Footer />
 
@@ -225,12 +255,17 @@ export default {
       network: 'mainnet',
       nearNetwork: null,
       nearProvider: null,
+      accountId: null,
       stats: statsDefault,
 
       // pagination thangs
       from_index: 0,
       limit: 10,
       totalTasks: 0,
+
+      // delete task
+      deleteTaskModal: false,
+      deleteTaskHash: null,
     }
   },
 
@@ -241,7 +276,81 @@ export default {
     Stat,
   },
 
+  computed: {
+    isAuthed() {
+      if (typeof this.accountId === 'undefined' || this.accountId === null) return false
+      let isSameNetwork = false
+      if (this.accountId) {
+        if (this.network === 'mainnet' && this.accountId.search('near') > -1) isSameNetwork = true
+        if (this.accountId.search(this.network) > -1) isSameNetwork = true
+        if (this.accountId.search(this.network) > -1) isSameNetwork = true
+      }
+      return isSameNetwork
+    },
+  },
+
   methods: {
+    async setAccount() {
+      if (!this.$near) return;
+      this.accountId = this.$near.user && this.$near.user.accountId ? this.$near.user.accountId : null
+    },
+    isTaskOwner(task) {
+      if (!this.isAuthed) return false
+      if (!task || !task.owner_id) return false
+      
+      return task && task.owner_id && task.owner_id === this.accountId
+    },
+    getCloneUrl(task) {
+      return `/create-task?network=${this.network}&contract_id=${task.contract_id}&function_id=${task.function_id}&cadence=${task.cadence}&deposit=${task.deposit}&gas=${task.gas}&arguments=${task.arguments}`
+    },
+    closeModal() {
+      this.deleteTaskHash = null
+      this.deleteTaskModal = false
+    },
+    async checkDeleteTask(task) {
+      this.deleteTaskHash = await this.getTaskHash(task)
+      console.log('this.deleteTaskHash', this.deleteTaskHash);
+      if (!this.deleteTaskHash) return
+      this.deleteTaskModal = true
+    },
+    async getTaskHash(task) {
+      if (!task.contract_id || !task.function_id || !task.cadence || !this.accountId) return;
+      let res
+      try {
+        res = await this.queryRpc('get_hash', {
+          contract_id: task.contract_id,
+          function_id: task.function_id,
+          cadence: task.cadence,
+          owner_id: this.accountId,
+        })
+        return res
+      } catch (e) {
+        return
+      }
+    },
+    async confirmDeleteTask() {
+      if (!this.deleteTaskHash) return
+      // get croncat contract instance
+      let $near = this.nearProvider
+      const contract_id = abis[this.network].manager
+      if (!$near || this.network !== this.nearNetwork) {
+        $near = await new VueNear(this.network)
+        await $near.loadNearProvider()
+        this.nearProvider = $near
+        this.nearNetwork = this.network
+      }
+      const croncat = await this.$near.getContractInstance(contract_id, abis.abis.manager)
+      if (!croncat) return;
+
+      // format new task object, sign & send
+      try {
+        await croncat.remove_task({ task_hash: this.deleteTaskHash }, 300000000000000, 0)
+        this.deleteTaskModal = false
+      } catch (e) {
+        console.log(e)
+        this.deleteTaskModal = false
+      }
+    },
     async queryRpc(method, args) {
       // load contract based on abis & type
       let $near = this.nearProvider
@@ -414,6 +523,14 @@ export default {
       this.network = network
     }
 
+    // Just needs to wait for next tick
+    setTimeout(() => {
+      this.setAccount()
+    }, 40)
+    setTimeout(() => {
+      this.setAccount()
+    }, 2000)
+
     this.reloadAll()
   },
 
@@ -422,3 +539,15 @@ export default {
   }
 }
 </script>
+
+<style>
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.2);
+  z-index: 100148;
+}
+</style>
