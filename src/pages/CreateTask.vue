@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="relative">
     <Header />
 
     <div class="max-w-7xl mx-auto" v-if="!accountId && !isComplete">
@@ -588,7 +588,6 @@ export default {
 
       // look for all the task params, in case the user is trying to clone from URI
       taskParamKeys.forEach(k => {
-        console.log('k', k);
         if (params.get(k)) this.task[k] = params.get(k)
       })
     },
