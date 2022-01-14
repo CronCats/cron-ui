@@ -12,13 +12,13 @@
             <span class="block">Login Required!</span>
           </h3>
 
-          <p class="my-8 text-gray-400">
+          <p class="my-8 mb-24 text-gray-400">
             Before you can create a task, you must be logged in with NEAR.
           </p>
 
-          <button tabindex="9" @click.prevent="login" class="mr-auto mb-24 flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
+          <!-- <button tabindex="9" @click.prevent="login" class="mr-auto mb-24 flex items-center justify-center px-8 py-3 nes-btn is-success md:py-4 md:text-lg md:px-10">
             Login with NEAR
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
@@ -51,6 +51,13 @@
               The network where this task will be deployed to.
             </p>
           </div> -->
+          
+          <div class="flex flex-col w-full mb-6">
+            <label class="text-gray-200 mb-4">{{network.toUpperCase()}} Network Active</label>
+            <p class="text-gray-500 text-xs mt-4">
+              The task will be deployed to {{network}}. If you intend to deploy a task to a different network, please logout & log into the correct network.
+            </p>
+          </div>
 
           <div class="flex flex-col w-full my-6">
             <div class="nes-field">
@@ -341,9 +348,6 @@ export default {
     },
     parseResponse(result) {
       return JSON.parse(Buffer.from(result).toString())
-    },
-    async login() {
-      await this.$near.loginAccount()
     },
     async setAccount() {
       if (!this.$near) return;
