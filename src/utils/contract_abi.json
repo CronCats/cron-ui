@@ -1,6 +1,6 @@
 {
   "testnet": {
-    "manager": "manager_v1.cron.testnet"
+    "manager": "manager_v1.croncat.testnet"
   },
   "mainnet": {
     "manager": "manager_v1.croncat.near"
@@ -18,17 +18,23 @@
         "get_info",
         "get_tasks",
         "get_task",
+        "get_tasks_by_owner",
+        "get_triggers",
+        "get_trigger",
         "get_slot_tasks",
         "get_slot_ids",
         "get_agent_tasks",
         "get_agent",
         "get_agent_ids",
         "get_hash",
+        "get_trigger_hash",
         "validate_cadence"
       ],
       "changeMethods": [
         "create_task",
         "remove_task",
+        "create_trigger",
+        "remove_trigger",
         "proxy_call",
         "register_agent",
         "update_agent",
