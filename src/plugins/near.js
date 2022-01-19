@@ -4,7 +4,7 @@ function getConfigByType(networkId, config) {
   return {
     networkId,
     nodeUrl: networkId !== 'guildnet' ? `https://rpc.${networkId}.near.org` : 'https://rpc.openshards.io',
-    explorerUrl: `https://explorer.${networkId === 'mainnet' ? '' : networkId + '.'}near.org`,
+    explorerUrl: networkId !== 'guildnet' ? `https://explorer.${networkId === 'mainnet' ? '' : networkId + '.'}near.org` : 'https://wallet.openshards.io',
     walletUrl: `https://wallet.${networkId === 'mainnet' ? '' : networkId + '.'}near.org`,
     helperUrl: `https://helper.${networkId}.near.org`,
     ...config,
