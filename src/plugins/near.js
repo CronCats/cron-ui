@@ -1,7 +1,7 @@
 import * as nearApi from 'near-api-js'
 
 function getConfigByType(networkId, config) {
-  return {
+  const l = {
     networkId,
     // guildnet
     nodeUrl: networkId !== 'guildnet' ? `https://rpc.${networkId}.near.org` : 'https://rpc.openshards.io',
@@ -10,6 +10,8 @@ function getConfigByType(networkId, config) {
     helperUrl: `https://helper.${networkId}.near.org`,
     ...config,
   }
+  console.log(networkId, l);
+  return l
 }
 
 export function getConfig(env, options = {}) {
