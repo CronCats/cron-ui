@@ -3,6 +3,7 @@ import * as nearApi from 'near-api-js'
 function getConfigByType(networkId, config) {
   return {
     networkId,
+    // guildnet
     nodeUrl: networkId !== 'guildnet' ? `https://rpc.${networkId}.near.org` : 'https://rpc.openshards.io',
     explorerUrl: networkId !== 'guildnet' ? `https://explorer.${networkId === 'mainnet' ? '' : networkId + '.'}near.org` : 'https://wallet.openshards.io',
     walletUrl: `https://wallet.${networkId === 'mainnet' ? '' : networkId + '.'}near.org`,
