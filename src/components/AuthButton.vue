@@ -28,15 +28,43 @@
       </div>
     </div>
 
-    <div v-if="!accountId" class="flex items-center font-bold p-2 text-gray-500 hover:text-gray-100" @click.prevent="login">
+    <div v-if="!accountId" class="flex items-center">
+      <div class="relative inline-block text-left">
+        <div class="font-bold p-2 text-gray-500 hover:text-gray-100" @click.prevent="toggleAccountMenu">
+          <NearToken class="w-6 h-6 my-auto mr-2" />
+          <span>Login</span>
+        </div>
+
+        <div class="origin-top-right absolute right-0 mt-2 w-56 shadow-lg bg-white font-bold" :class="{hidden: !accountMenuActive}">
+          <div @click="accountMenuActive = false" class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+            <button @click.prevent="login('mainnet')" type="submit" class="block w-full text-left px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:bg-gray-100 focus:text-gray-900 dark:text-gray-300 dark:hover:bg-turquoise-900 dark:hover:text-gray-50" role="menuitem">
+              Mainnet
+            </button>
+          </div>
+          <div @click="accountMenuActive = false" class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+            <button @click.prevent="login('testnet')" type="submit" class="block w-full text-left px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:bg-gray-100 focus:text-gray-900 dark:text-gray-300 dark:hover:bg-turquoise-900 dark:hover:text-gray-50" role="menuitem">
+              Testnet
+            </button>
+          </div>
+          <div @click="accountMenuActive = false" class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+            <button @click.prevent="login('guildnet')" type="submit" class="block w-full text-left px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:bg-gray-100 focus:text-gray-900 dark:text-gray-300 dark:hover:bg-turquoise-900 dark:hover:text-gray-50" role="menuitem">
+              Guildnet
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div v-if="!accountId" class="flex items-center font-bold p-2 text-gray-500 hover:text-gray-100" @click.prevent="login">
       <NearToken class="w-6 h-6 my-auto mr-2" />
       <span>Login</span>
-    </div>
+    </div> -->
 
   </div>
 </template>
 
 <script>
+import { VueNear } from '../plugins/near'
 import { ref } from 'vue'
 import NearToken from './NearToken'
 
@@ -60,7 +88,11 @@ export default {
   },
 
   methods: {
-    async login() {
+    async login(network) {
+      this.$near = await new VueNear(network)
+      console.log('this.$near', this.$near, network);
+      await this.$near.loadNearProvider()
+      await this.$near.loadAccount()
       await this.$near.loginAccount()
     },
     logout() {
@@ -69,7 +101,7 @@ export default {
 
       // remove auth token from header
       // delete this.$http.defaults.headers.common['authorization']
-      this.$router.replace({ path: '/' })
+      // this.$router.replace({ path: '/' })
     },
     async setAccount() {
       this.accountId = this.$near.user && this.$near.user.accountId ? this.$near.user.accountId : null
