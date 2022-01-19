@@ -1,17 +1,14 @@
 import * as nearApi from 'near-api-js'
 
 function getConfigByType(networkId, config) {
-  const l = {
+  return {
     networkId,
-    // guildnet
     nodeUrl: networkId !== 'guildnet' ? `https://rpc.${networkId}.near.org` : 'https://rpc.openshards.io',
-    explorerUrl: networkId !== 'guildnet' ? `https://explorer.${networkId === 'mainnet' ? '' : networkId + '.'}near.org` : 'https://wallet.openshards.io',
-    walletUrl: `https://wallet.${networkId === 'mainnet' ? '' : networkId + '.'}near.org`,
+    explorerUrl: `https://explorer.${networkId === 'mainnet' ? '' : networkId + '.'}near.org`,
+    walletUrl: networkId !== 'guildnet' ? `https://wallet.${networkId === 'mainnet' ? '' : networkId + '.'}near.org` : 'https://wallet.openshards.io',
     helperUrl: `https://helper.${networkId}.near.org`,
     ...config,
   }
-  console.log(networkId, l);
-  return l
 }
 
 export function getConfig(env, options = {}) {
@@ -94,7 +91,6 @@ export class VueNear {
   async getContractInstance(contract_id, abiMethods) {
     if (!this.user || !this.user.accountId) return
     const account = this.walletConnection.account()
-    console.log('account', account);
     const abi = {
       changeMethods: [],
       viewMethods: [],

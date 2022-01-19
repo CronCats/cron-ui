@@ -90,7 +90,6 @@ export default {
   methods: {
     async login(network) {
       this.$near = await new VueNear(network)
-      console.log('this.$near', this.$near, network);
       await this.$near.loadNearProvider()
       await this.$near.loadAccount()
       await this.$near.loginAccount()
