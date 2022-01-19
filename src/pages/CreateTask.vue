@@ -149,6 +149,15 @@
             </div>
           </div>
 
+          <div class="w-full mt-4 mb-4" v-if="isError">
+            <div class="nes-container with-title is-rounded is-dark is-error" style="margin-bottom:1rem;">
+              <p class="title text-xs text-red-500">Task Creation Error!</p>
+              <p class="text-red-500">
+                The task you are trying to failed create. Please change your parameters and try again.
+              </p>
+            </div>
+          </div>
+
           <div v-if="!isSubmitting && !isComplete">
             <button tabindex="9" @click.prevent="createTask" class="mx-auto flex items-center justify-center px-8 py-3 nes-btn md:py-4 md:text-lg md:px-10" :class="{'is-success': allFieldsValid == true, 'is-disabled': allFieldsValid == false}">
               Create Task
@@ -265,6 +274,7 @@ export default {
       isSubmitting: false,
       isComplete: false,
       isExists: false,
+      isError: false,
 
       taskDepositTotal: '0',
       task: {
@@ -414,13 +424,13 @@ export default {
       if (!this.task.contract_id || !this.task.function_id || !this.task.cadence || !this.accountId) return;
       let res
       try {
-        res = await this.queryRpc('get_hash', {
+        const task_payload = {
           contract_id: this.task.contract_id,
           function_id: this.task.function_id,
           cadence: this.task.cadence,
           owner_id: this.accountId,
-        })
-        console.log("getTaskHash", res)
+        }
+        res = await this.queryRpc('get_hash', task_payload)
         return res
       } catch (e) {
         return
@@ -525,6 +535,7 @@ export default {
       await this.validateFunctionId()
       await this.validateCadence()
       await this.checkIfTaskExists()
+      if (this.allFieldsValid) this.isError = false
     },
     async createTask() {
       // check auth
@@ -539,15 +550,11 @@ export default {
       if (!this.allFieldsValid) return;
 
       // get croncat contract instance
-      let $near = this.nearProvider
       const contract_id = abis[this.network].manager
-      if (!$near || this.network !== this.nearNetwork) {
-        $near = await new VueNear(this.network)
-        await $near.loadNearProvider()
-        this.nearProvider = $near
-        this.nearNetwork = this.network
-      }
-      const croncat = await this.$near.getContractInstance(contract_id, abis.abis.manager)
+      let $near = await new VueNear(this.network)
+      await $near.loadNearProvider()
+      await $near.loadAccount()
+      const croncat = await $near.getContractInstance(contract_id, abis.abis.manager)
       if (!croncat) return;
 
       // update status
@@ -593,6 +600,13 @@ export default {
       // look for all the task params, in case the user is trying to clone from URI
       taskParamKeys.forEach(k => {
         if (params.get(k)) this.task[k] = params.get(k)
+      })
+
+      // look for any errors
+      const errorKeys = ['errorCode', 'errorMessage']
+      errorKeys.forEach(k => {
+        const v = params.get(k)
+        if (v) this.isError = true
       })
     },
   },
