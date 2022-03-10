@@ -10,6 +10,8 @@ const routes = {
   '/': 'Home',
   '/tasks': 'Tasks',
   '/create-task': 'CreateTask',
+  '/triggers': 'Triggers',
+  '/create-trigger': 'CreateTrigger',
 }
 
 const SimpleRouter = {
