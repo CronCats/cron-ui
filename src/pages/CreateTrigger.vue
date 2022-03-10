@@ -138,19 +138,23 @@
           </h2>
 
           <p class="my-8 text-gray-400">
-            Your trigger has been created and has the hash "<span class="text-teal-400 underline">{{newTriggerHash}}</span>", please copy this hash for your records to help manage the trigger in the future.
+            Your trigger has been created and has the hash "<span class="text-teal-400 underline">{{newTriggerHash || newTrigger.hash}}</span>", please copy this hash for your records to help manage the trigger in the future.
           </p>
 
           <!-- Trigger sample here -->
           <div v-if="newTrigger" class="nes-container with-title is-rounded is-dark w-full mb-12 min-w-full" style="margin-bottom:1rem;">
             <p class="title text-xs">{{newTrigger.contract_id}}</p>
             <div class="flex items-center justify-between">
-              <div class="flex">{{newTrigger.function_id}}</div>
-              <div class="flex nes-badge">
-                <span class="is-dark" style="font-size: 8pt;">{{newTrigger.hash}}</span>
+              <div class="flex">
+                <span class="truncate" style="max-width: 300px">{{newTrigger.function_id}}</span>
               </div>
-              <div class="flex nes-badge">
-                <span class="is-dark" style="font-size: 8pt;">{{newTrigger.task_hash}}</span>
+              <div class="flex">
+                <span>Hash:</span>
+                <span class="pt-1 truncate" style="font-size: 8pt;max-width: 250px">{{newTrigger.hash}}</span>
+              </div>
+              <div class="flex">
+                <span>Task:</span>
+                <span class="pt-1 truncate" style="font-size: 8pt;max-width: 250px">{{newTrigger.task_hash}}</span>
               </div>
             </div>
           </div>
@@ -234,7 +238,7 @@ export default {
         data: [
           {
             title: 'Task',
-            value: this.trigger.task_hash,
+            value: this.trigger.task_hash.length > 12 ? `${this.trigger.task_hash}`.substring(0, 16) + '...': this.trigger.task_hash,
             isNear: true,
           },
           {
@@ -411,7 +415,7 @@ export default {
           this.isComplete = true
           this.newTriggerHash = `${atob(res.status.SuccessValue)}`.replace(/\"/g, '')
           if (this.newTriggerHash) {
-            this.newTrigger = await this.loadTask(this.newTriggerHash)
+            this.newTrigger = await this.loadTrigger(this.newTriggerHash)
           }
         }
       } catch (e) {
@@ -426,7 +430,7 @@ export default {
       try {
         const res = await this.queryRpc('account', {}, {
           request_type: 'view_account',
-          account_id: `${this.task.contract_id}`,
+          account_id: `${this.trigger.contract_id}`,
           finality: 'optimistic',
         })
         if (!res || res.error) this.validContractId = false
@@ -441,14 +445,16 @@ export default {
       // this.validFunctionId = null
       this.updateQueryUri()
       this.isExists = false
+      if (typeof this.trigger.function_id === 'undefined' || this.trigger.function_id.length <= 0) {this.validContractId = false; return;}
       if (typeof this.validContractId === 'undefined' || this.validContractId === null) this.validContractId = false
 
       try {
         const res = await this.queryRpc(`${this.trigger.function_id}`, {}, { account_id: `${this.trigger.contract_id}` })
+        console.log('res', res);
         if (!res) this.validFunctionId = false
         if (res) {
           // looking for specific error message to confirm function exists
-          if (res.search('MethodNotFound') > -1) {
+          if (`${res}`.search('MethodNotFound') > -1) {
             this.validFunctionId = false
           } else this.validFunctionId = true
         }

@@ -3,7 +3,7 @@
     <Header />
 
     <!-- <div class="">
-      <div class="max-w-7xl mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
+      <div class="mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
         <div class="flex">
           <h2 class="pb-4 text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
             <span class="block">Stats</span>
@@ -15,13 +15,13 @@
         </div>
       </div>
 
-      <div class="flex max-w-7xl mx-auto pt-4 lg:pt-8 lg:flex lg:items-center lg:justify-between">
+      <div class="flex mx-auto pt-4 lg:pt-8 lg:flex lg:items-center lg:justify-between">
         <Stat v-for="stat in stats" :key="stat.title" :title="stat.title" :data="stat.data" />
       </div>
     </div> -->
 
-    <div class="">
-      <div class="max-w-7xl mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
+    <div class="px-4">
+      <div class="mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
         <div class="flex">
           <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
             <span class="block">Triggers</span>
@@ -49,15 +49,15 @@
     </div>
 
     <div class="flex items-center justify-center py-8 px-0 sm:px-6 lg:px-8">
-      <section class="max-w-7xl w-1/2 space-y-8 my-12" v-if="loading && triggers.length == 0">
+      <section class="w-1/2 space-y-8 my-12" v-if="loading && triggers.length == 0">
         <progress class="nes-progress is-pattern" :value="prog" max="100"></progress>
         <p class="text-center text-gray-200">Loading...</p>
       </section>
-      <section class="max-w-7xl w-1/2 space-y-8 my-12" v-if="!loading && triggers.length == 0">
+      <section class="w-1/2 space-y-8 my-12" v-if="!loading && triggers.length == 0">
         <p class="text-center text-gray-200">No Triggers Yet!</p>
       </section>
 
-      <section v-if="triggers.length > 0" class="max-w-7xl w-full">
+      <section v-if="triggers.length > 0" class="w-full">
 
         <div class="nes-container with-title is-rounded is-dark w-full mb-4 min-w-full" style="margin-bottom:1rem;" v-for="trigger in triggers" :key="trigger.hash">
           <p class="title text-xs">{{trigger.contract_id}}</p>
@@ -68,11 +68,11 @@
             </div>
             <div class="flex">
               <span>Hash:</span>
-              <span class="truncate" style="font-size: 8pt;max-width: 250px">{{trigger.hash}}</span>
+              <span class="pt-1 truncate" style="font-size: 8pt;max-width: 250px">{{trigger.hash}}</span>
             </div>
             <div class="flex">
               <span>Task:</span>
-              <span class="truncate" style="font-size: 8pt;max-width: 250px">{{trigger.task_hash}}</span>
+              <span class="pt-1 truncate" style="font-size: 8pt;max-width: 250px">{{trigger.task_hash}}</span>
             </div>
             <!-- <div class="flex nes-badge truncate p-2">
               <span class="is-dark block" style="font-size: 8pt;">{{trigger.hash}}</span>
@@ -156,7 +156,7 @@ export default {
 
       // pagination thangs
       from_index: 0,
-      limit: 10,
+      limit: 100,
       totalTriggers: 0,
 
       // delete trigger
