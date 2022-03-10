@@ -2,8 +2,8 @@
   <div>
     <Header />
 
-    <div class="">
-      <div class="max-w-7xl mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
+    <div class="px-4">
+      <div class="mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
         <div class="flex">
           <h2 class="pb-4 text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
             <span class="block">Stats</span>
@@ -15,13 +15,13 @@
         </div>
       </div>
 
-      <div class="flex max-w-7xl mx-auto pt-4 lg:pt-8 lg:flex lg:items-center lg:justify-between">
+      <div class="flex mx-auto pt-4 lg:pt-8 lg:flex lg:items-center lg:justify-between">
         <Stat v-for="stat in stats" :key="stat.title" :title="stat.title" :data="stat.data" />
       </div>
     </div>
 
-    <div class="">
-      <div class="max-w-7xl mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
+    <div class="px-4">
+      <div class="mx-auto pt-12 px-4 sm:px-6 lg:pt-16 lg:px-8 lg:flex lg:items-center lg:justify-between border-b-4 border-gray-600">
         <div class="flex">
           <h2 class="text-2xl font-extrabold tracking-tight text-gray-300 sm:text-3xl">
             <span class="block">Tasks</span>
@@ -49,15 +49,15 @@
     </div>
 
     <div class="flex items-center justify-center py-8 px-0 sm:px-6 lg:px-8">
-      <section class="max-w-7xl w-1/2 space-y-8 my-12" v-if="loading && tasks.length == 0">
+      <section class="w-1/2 space-y-8 my-12" v-if="loading && tasks.length == 0">
         <progress class="nes-progress is-pattern" :value="prog" max="100"></progress>
         <p class="text-center text-gray-200">Loading...</p>
       </section>
-      <section class="max-w-7xl w-1/2 space-y-8 my-12" v-if="!loading && tasks.length == 0">
+      <section class="w-1/2 space-y-8 my-12" v-if="!loading && tasks.length == 0">
         <p class="text-center text-gray-200">No Tasks Yet!</p>
       </section>
 
-      <section v-if="tasks.length > 0" class="max-w-7xl w-full">
+      <section v-if="tasks.length > 0" class="w-full">
 
         <div class="nes-container with-title is-rounded is-dark w-full mb-4 min-w-full" style="margin-bottom:1rem;" v-for="task in tasks" :key="task.hash">
           <p class="title text-xs">{{task.contract_id}}</p>
@@ -76,12 +76,12 @@
               <span>{{formatGasAmt(task.gas)}}</span>
             </div>
             <div class="flex" v-if="task.deposit">
-              <span>{{formatNearAmt(task.deposit)}}</span>
-              <img class="w-6 inline-block" src="../assets/token_white.svg">
+              <span class="m-auto mr-2">{{formatNearAmt(task.deposit)}}</span>
+              <small class="pt-2" v-if="isYocto(task.deposit)">y</small><img class="w-6 inline-block" src="../assets/token_white.svg">
             </div>
             <div class="flex" v-if="task.total_deposit">
-              <span>{{formatNearAmt(task.total_deposit)}}</span>
-              <img class="w-6 inline-block" src="../assets/token_white.svg">
+              <span class="m-auto mr-2">{{formatNearAmt(task.total_deposit)}}</span>
+              <small class="pt-2" v-if="isYocto(task.total_deposit)">y</small><img class="w-6 inline-block" src="../assets/token_white.svg">
             </div>
             <div class="flex" v-if="isTaskOwner(task) || isAuthed">
               <button @click.prevent="checkDeleteTask(task)" class="nes-badge mr-4" v-if="isTaskOwner(task)">
@@ -92,12 +92,20 @@
                   <span class="mr-auto">Delete</span>
                 </span>
               </button>
-              <a :href="getCloneUrl(task)" class="nes-badge" v-if="isAuthed">
+              <a :href="getCloneUrl(task)" class="nes-badge mr-4" v-if="isAuthed">
                 <span class="flex is-success">
                   <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
                   </svg>
                   <span class="mr-auto">Clone</span>
+                </span>
+              </a>
+              <a :href="getTriggerUrl(task)" class="nes-badge" v-if="isTaskOwner(task)">
+                <span class="flex is-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="ml-auto mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                  </svg>
+                  <span class="mr-auto">Trigger</span>
                 </span>
               </a>
             </div>
@@ -260,7 +268,7 @@ export default {
 
       // pagination thangs
       from_index: 0,
-      limit: 10,
+      limit: 100,
       totalTasks: 0,
 
       // delete task
@@ -301,7 +309,10 @@ export default {
       return task && task.owner_id && task.owner_id === this.accountId
     },
     getCloneUrl(task) {
-      return `/create-task?network=${this.network}&contract_id=${task.contract_id}&function_id=${task.function_id}&cadence=${task.cadence}&deposit=${task.deposit}&gas=${task.gas}&arguments=${task.arguments}`
+      return `/create-task?network=${this.network}&contract_id=${task.contract_id}&function_id=${task.function_id}&cadence=${task.cadence}&deposit=${task.deposit}&gas=${task.gas}&arguments=${encodeURIComponent(task.arguments)}`
+    },
+    getTriggerUrl(task) {
+      return `/create-trigger?network=${this.network}&task_hash=${encodeURIComponent(task.hash)}`
     },
     closeModal() {
       this.deleteTaskHash = null
@@ -309,7 +320,6 @@ export default {
     },
     async checkDeleteTask(task) {
       this.deleteTaskHash = await this.getTaskHash(task)
-      console.log('this.deleteTaskHash', this.deleteTaskHash);
       if (!this.deleteTaskHash) return
       this.deleteTaskModal = true
     },
@@ -503,15 +513,21 @@ export default {
       this.loadStats()
     },
     formatNearAmt(amount) {
-      return this.$near.nearApi.utils.format.formatNearAmount(amount)
+      const raw = this.$near.nearApi.utils.format.formatNearAmount(amount)
+      if (this.isYocto(amount)) return parseInt(amount)
+      return raw !== '0' ? parseFloat(raw).toFixed(4) : raw
     },
     formatGasAmt(amount) {
       const gas = this.$near.nearApi.utils.format.formatNearAmount(amount)
-      return `${parseFloat(gas) * 1e12} Tgas`
+      return `${(parseFloat(gas) * 1e12).toFixed(0)} Tgas`
     },
     formatNearAmtPrecision(amount, digits = 2) {
       const raw = this.$near.nearApi.utils.format.formatNearAmount(amount)
       return parseFloat(raw).toFixed(digits)
+    },
+    isYocto(amount) {
+      const i = parseInt(amount)
+      return i < 10 && i > 0
     },
   },
 
