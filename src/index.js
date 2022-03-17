@@ -10,6 +10,7 @@ const routes = {
   '/': 'Home',
   '/tasks': 'Tasks',
   '/create-task': 'CreateTask',
+  '/create-ping': 'CreatePing',
   '/triggers': 'Triggers',
   '/create-trigger': 'CreateTrigger',
 }

@@ -15,10 +15,16 @@
           </button>
         </div>
 
-        <div class="origin-top-right absolute right-0 mt-2 w-56 shadow-lg bg-white font-bold" :class="{hidden: !accountMenuActive}">
+        <div class="origin-top-right absolute right-0 mt-2 min-w-full w-full shadow-lg bg-white font-bold" :class="{hidden: !accountMenuActive}">
           <div @click="accountMenuActive = false" class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
             <a href="/create-task" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-manatee-900 dark:hover:text-gray-50" role="menuitem">
               Create Task
+            </a>
+            <a href="/create-trigger" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-manatee-900 dark:hover:text-gray-50" role="menuitem">
+              Create Trigger
+            </a>
+            <a href="/create-ping" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-manatee-900 dark:hover:text-gray-50" role="menuitem">
+              Create Ping
             </a>
             <button @click.prevent="logout" type="submit" class="block w-full text-left px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:bg-gray-100 focus:text-gray-900 dark:text-gray-300 dark:hover:bg-turquoise-900 dark:hover:text-gray-50" role="menuitem">
               Sign out
