@@ -281,6 +281,7 @@ export default {
         if (this.accountId.search('near') > -1) this.network = 'mainnet'
         if (this.accountId.search('testnet') > -1) this.network = 'testnet'
         if (this.accountId.search('guildnet') > -1) this.network = 'guildnet'
+        if (this.accountId.search('shardnet') > -1) this.network = 'shardnet'
       }
     },
     async queryRpc(method, args, options = {}) {

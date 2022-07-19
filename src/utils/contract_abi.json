@@ -11,6 +11,9 @@
   "betanet": {
     "manager": "manager_v1.croncat.betanet"
   },
+  "shardnet": {
+    "manager": "manager_v1.croncat.shardnet.near"
+  },
   "abis": {
     "manager": {
       "viewMethods": [
