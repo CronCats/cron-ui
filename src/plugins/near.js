@@ -23,6 +23,8 @@ export function getConfig(env, options = {}) {
       return getConfigByType('betanet', options)
     case 'guildnet':
       return getConfigByType('guildnet', options)
+    case 'shardnet':
+      return getConfigByType('shardnet', options)
     case 'local':
       return {
         ...options,
