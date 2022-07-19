@@ -37,7 +37,7 @@
               <select required id="dark_select" v-model="network">
                 <option value="mainnet">Mainnet</option>
                 <option value="testnet" selected>Testnet</option>
-                <!-- <option value="guildnet">Guildnet</option> -->
+                <option value="guildnet">Guildnet</option>
                 <option value="shardnet">Shardnet</option>
                 <!-- <option value="betanet">Betanet</option> -->
               </select>

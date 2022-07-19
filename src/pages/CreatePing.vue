@@ -285,6 +285,7 @@ export default {
       let base = 'poolv1.near'
       if (this.network === 'testnet') base = 'pool.f863973.m0'
       if (this.network === 'guildnet') base = 'stake.guildnet'
+      if (this.network === 'shardnet') base = 'factory.shardnet.near'
 
       return `your_validator.${base}`
     },
@@ -310,6 +311,7 @@ export default {
         if (this.accountId.search('near') > -1) this.network = 'mainnet'
         if (this.accountId.search('testnet') > -1) this.network = 'testnet'
         if (this.accountId.search('guildnet') > -1) this.network = 'guildnet'
+        if (this.accountId.search('shardnet') > -1) this.network = 'shardnet'
       }
     },
     async queryRpc(method, args, options = {}) {
